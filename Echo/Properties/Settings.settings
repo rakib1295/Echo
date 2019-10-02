@@ -1,0 +1,41 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="Echo.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="SMS_Checkbox_Data" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="User_Name_String" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="Password_String" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="ParcentLoss" Type="System.String" Scope="User">
+      <Value Profile="(Default)">90</Value>
+    </Setting>
+    <Setting Name="SMS_Interval" Type="System.String" Scope="User">
+      <Value Profile="(Default)">120</Value>
+    </Setting>
+    <Setting Name="Refresh_Interval" Type="System.String" Scope="User">
+      <Value Profile="(Default)">10</Value>
+    </Setting>
+    <Setting Name="PingSenseTime" Type="System.String" Scope="User">
+      <Value Profile="(Default)">5</Value>
+    </Setting>
+    <Setting Name="MsgHeader" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Dear Sir,</Value>
+    </Setting>
+    <Setting Name="SMSIfAllUp" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="AllLinksUp_txt" Type="System.String" Scope="User">
+      <Value Profile="(Default)">All links are up now.</Value>
+    </Setting>
+    <Setting Name="MsgFooter" Type="System.String" Scope="User">
+      <Value Profile="(Default)">NOC
+Moghbazar
+T-0258312345</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
