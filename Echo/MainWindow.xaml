@@ -257,10 +257,10 @@
                             <ColumnDefinition Width="79*"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Text="Username:" Grid.Row="0" Grid.Column="0" Margin="5,5,0,0" FontSize="10" Grid.ColumnSpan="2" />
-                        <TextBox x:Name="user_name" Text="noc" TextChanged="user_name_TextChanged_1" Grid.Row="0" Grid.Column="2" HorizontalAlignment="Left"  Margin="5,0,0,2" Width="100" FontSize="10"/>
+                        <TextBox x:Name="user_name" TextChanged="user_name_TextChanged_1" Grid.Row="0" Grid.Column="2" HorizontalAlignment="Left"  Margin="5,0,0,2" Width="100" FontSize="10"/>
 
                         <TextBlock Text="Password:"  Grid.Row="1" Grid.Column="0" Margin="5,5,0,0" FontSize="10" Grid.ColumnSpan="2"/>
-                        <PasswordBox x:Name="acc_psw" Password="Noc$1234" PasswordChar="*" PasswordChanged="acc_psw_PasswordChanged_1" Width="100" HorizontalAlignment="Left" Grid.Row="1" Grid.Column="2" Margin="5,2,0,0" FontSize="10"/>
+                        <PasswordBox x:Name="acc_psw" PasswordChar="*" PasswordChanged="acc_psw_PasswordChanged_1" Width="100" HorizontalAlignment="Left" Grid.Row="1" Grid.Column="2" Margin="5,2,0,0" FontSize="10"/>
                     </Grid>
                 </Grid>
 
