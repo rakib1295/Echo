@@ -777,15 +777,41 @@ namespace Echo
         {
             if (VM.Destination_Excel_url != "")
             {
-                if (VM.RunPingFunctionality)
+                if (VM.SMSActive)
                 {
-                    MessageBox.Show("Please at first pause ping function, then load excel.", VM.Title, MessageBoxButton.OK, MessageBoxImage.Information);
+                    if (this.user_name.Text == "" || this.acc_psw.Password == "")
+                    {
+                        if (MessageBox.Show("Please give user name & password for bulk sms, otherwise deactivate sms. Do you want to activate sms?", VM.Title, MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+                        {
+                            this.Popup_Settings.IsOpen = true;
+                        }
+                    }
+                    else
+                    {
+                        if (VM.RunPingFunctionality)
+                        {
+                            MessageBox.Show("Please at first pause ping function, then load excel.", VM.Title, MessageBoxButton.OK, MessageBoxImage.Information);
+                        }
+                        else
+                        {
+                            VM.ExcelLoaded = false;
+                            Show_LogTextblock("Trying to load excel file ... .. .");
+                            VM.LoadingThread();
+                        }
+                    }
                 }
                 else
                 {
-                    VM.ExcelLoaded = false;
-                    Show_LogTextblock("Trying to load excel file ... .. .");
-                    VM.LoadingThread();
+                    if (VM.RunPingFunctionality)
+                    {
+                        MessageBox.Show("Please at first pause ping function, then load excel.", VM.Title, MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    else
+                    {
+                        VM.ExcelLoaded = false;
+                        Show_LogTextblock("Trying to load excel file ... .. .");
+                        VM.LoadingThread();
+                    }
                 }
             }
             else

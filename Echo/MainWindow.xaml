@@ -244,7 +244,7 @@
                         <RowDefinition/>
                     </Grid.RowDefinitions>
                     <TextBlock Grid.Row="0" Text="Teletalk Bulksms Account Settings" FontWeight="Bold"/>
-                    <CheckBox Grid.Row="1" x:Name="SMS_Checkbox" Content="If uncheck, SMS will be disabled (only ping will continue)" Checked="SMS_Checkbox_Checked_1" Unchecked="SMS_Checkbox_Unchecked_1"/>
+                    <CheckBox Grid.Row="1" x:Name="SMS_Checkbox" Content="If uncheck, SMS will be deactivated (only ping will continue)" Checked="SMS_Checkbox_Checked_1" Unchecked="SMS_Checkbox_Unchecked_1"/>
                     <Grid Grid.Row="2">
                         <Grid.RowDefinitions>
                             <RowDefinition/>
