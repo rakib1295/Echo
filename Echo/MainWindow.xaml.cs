@@ -785,7 +785,7 @@ namespace Echo
                 {
                     if (this.user_name.Text == "" || this.acc_psw.Password == "")
                     {
-                        if (MessageBox.Show("Please give user name & password for bulk sms, otherwise deactivate sms. Do you want to activate sms?", VM.Title, MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+                        if (MessageBox.Show("Please give user name & password for bulk sms, otherwise deactivate sms sending. Do you want to activate sms?", VM.Title, MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
                         {
                             this.Popup_Settings.IsOpen = true;
                         }
