@@ -231,7 +231,7 @@
         <Popup x:Name="Popup_Settings" HorizontalAlignment="Left" Placement="Mouse"  VerticalAlignment="Top" IsOpen="False" Margin="0,0,0,0" Width="340" Height="600" StaysOpen="False">
             <Grid Background="LightSkyBlue">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="4*"/>
+                    <RowDefinition Height="6*"/>
                     <RowDefinition Height="3*"/>
                     <RowDefinition Height="19*"/>
                     <RowDefinition Height="2*"/>
@@ -242,6 +242,7 @@
                         <RowDefinition Height="20"/>
                         <RowDefinition Height="20"/>
                         <RowDefinition/>
+                        <RowDefinition Height="27"/>
                     </Grid.RowDefinitions>
                     <TextBlock Grid.Row="0" Text="Teletalk Bulksms Account Settings" FontWeight="Bold"/>
                     <CheckBox Grid.Row="1" x:Name="SMS_Checkbox" Content="If uncheck, SMS will be deactivated (only ping will continue)" Checked="SMS_Checkbox_Checked_1" Unchecked="SMS_Checkbox_Unchecked_1"/>
@@ -261,6 +262,14 @@
 
                         <TextBlock Text="Password:"  Grid.Row="1" Grid.Column="0" Margin="5,5,0,0" FontSize="10" Grid.ColumnSpan="2"/>
                         <PasswordBox x:Name="acc_psw" PasswordChar="*" PasswordChanged="acc_psw_PasswordChanged_1" Width="100" HorizontalAlignment="Left" Grid.Row="1" Grid.Column="2" Margin="5,2,0,0" FontSize="10"/>
+                    </Grid>
+                    <Grid Grid.Row="3" Margin="0,5,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <Button x:Name="AccTest_btn" Grid.Column="0" Width="100" Content="Test Account" Click="AccTest_btn_Click"/>
+                        <TextBlock x:Name="AccTest_Txtblk" Grid.Column="1"/>
                     </Grid>
                 </Grid>
 

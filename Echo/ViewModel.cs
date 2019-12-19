@@ -89,6 +89,18 @@ namespace Echo
             }
         }
 
+        private String _accountStatusText = "";
+        public String AccountStatusText
+        {
+            get { return _accountStatusText; }
+            set
+            {
+                _accountStatusText = value;
+                // Call OnPropertyChanged whenever the property is updated
+                OnPropertyChanged("AccountStatusText");
+            }
+        }
+
         private int _UpDownIndicator;
         public int UpDownIndicator
         {
@@ -395,12 +407,12 @@ namespace Echo
         }
 
 
-        public Task SMSThreadMethodAsync()
+        private Task SMSThreadMethodAsync()
         {
             return Task.Run(() => CheckNetBeforeSMS());
         }
 
-        public void CheckNetBeforeSMS()
+        private void CheckNetBeforeSMS()
         {
             if (NetworkInterface.GetIsNetworkAvailable())
             {
@@ -416,7 +428,7 @@ namespace Echo
             }
         }
 
-        public void SMSFunction()
+        private void SMSFunction()
         {
             int downnodescount = NodesList.Where(s => (s.Status == "Down" || s.Status == "Unknown")).ToList<Entity>().Count;
             if (downnodescount != NodesList.Count)
@@ -539,6 +551,73 @@ namespace Echo
                 _creditStatus = value;
                 // Call OnPropertyChanged whenever the property is updated
                 OnPropertyChanged("CreditStatus");
+            }
+        }
+
+        public async void AccountTestTask()
+        {
+            await Task.Run(() => HttpCallforAccountTest());
+        }
+
+        private void HttpCallforAccountTest()
+        {
+            string responseFromHttpWeb = "";
+
+            if (NetworkInterface.GetIsNetworkAvailable())
+            {
+                try
+                {
+                    String UrlString = "http://bulksms.teletalk.com.bd/link_sms_send.php?op=SMS&user=" + User_Name_String + "&pass=" + Password_String;
+                    HttpWebRequest request = (HttpWebRequest)WebRequest.Create(@UrlString);
+                    request.AllowWriteStreamBuffering = false;
+
+
+                    WebResponse response = request.GetResponse();
+                    // Display the status.
+                    //Console.WriteLine(((HttpWebResponse)response).StatusDescription);
+                    // Get the stream containing content returned by the server.
+                    Stream dataStream = response.GetResponseStream();
+                    // Open the stream using a StreamReader for easy access.
+                    StreamReader reader = new StreamReader(dataStream);
+                    // Read the content.
+
+                    responseFromHttpWeb = reader.ReadToEnd();
+                    // Display the content.
+                    //Console.WriteLine(responseFromServer);
+
+                    if (((HttpWebResponse)response).StatusDescription == "OK")
+                    {
+                        if (responseFromHttpWeb.Contains("INVALID USER"))
+                        {
+                            AccountStatusText = "Account is invalid";
+                        }
+                        else
+                        {
+                            AccountStatusText = "Congrats! Account is valid";
+                        }
+                    }
+                    else
+                    {
+                        AccountStatusText = "Server not OK";
+                    }
+
+                    // Clean up the streams.
+                    reader.Close();
+                    dataStream.Close();
+                    response.Close();
+
+                    reader.Dispose();
+                    dataStream.Dispose();
+                    response.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    AccountStatusText = "Network error";
+                }
+            }
+            else
+            {
+                AccountStatusText = "Network unplugged";
             }
         }
 

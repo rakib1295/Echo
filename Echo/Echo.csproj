@@ -55,10 +55,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestCertificateThumbprint>1725193A7CEFD70B0AE6C407A30A46CD97DD2CEE</ManifestCertificateThumbprint>
+    <ManifestCertificateThumbprint>FF03E4011AC29914E7FDB1B94FEE9C1FC3061FEE</ManifestCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestKeyFile>Echo_3_TemporaryKey.pfx</ManifestKeyFile>
+    <ManifestKeyFile>Echo_TemporaryKey.pfx</ManifestKeyFile>
   </PropertyGroup>
   <PropertyGroup>
     <GenerateManifests>true</GenerateManifests>
@@ -148,7 +148,7 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <None Include="Echo_3_TemporaryKey.pfx" />
+    <None Include="Echo_TemporaryKey.pfx" />
     <None Include="Properties\app.manifest" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

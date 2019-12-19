@@ -381,6 +381,10 @@ namespace Echo
                     }
                 }));
             }
+            Dispatcher.BeginInvoke((Action)(() =>
+            {
+                AccTest_Txtblk.Text = VM.AccountStatusText;
+            }));
         }
 
 
@@ -1131,6 +1135,12 @@ namespace Echo
             VM.SMSEvenAllUp = false;
             AllLinksUp_txtbox.IsEnabled = false;
             Show_LogTextblock("SMS will not be sent when all links are up.");
+        }
+
+        private void AccTest_btn_Click(object sender, RoutedEventArgs e)
+        {
+            VM.AccountStatusText = "Please wait......";
+            VM.AccountTestTask();            
         }
     }
 }
