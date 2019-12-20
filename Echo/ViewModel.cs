@@ -528,7 +528,7 @@ namespace Echo
                 {
                     if (NumberofFailtoSendSMS == 0)
                     {
-                        HttpCallforSMS(phnNum, SMSContentString);
+                        HttpCalltoTeletalk(phnNum, SMSContentString);
                     }
                 }
             }
@@ -556,10 +556,10 @@ namespace Echo
 
         public async void AccountTestTask()
         {
-            await Task.Run(() => HttpCallforAccountTest());
+            await Task.Run(() => HttpCalltoTeletalk());
         }
 
-        private void HttpCallforAccountTest()
+        private void HttpCalltoTeletalk()
         {
             string responseFromHttpWeb = "";
 
@@ -587,9 +587,10 @@ namespace Echo
 
                     if (((HttpWebResponse)response).StatusDescription == "OK")
                     {
+                        responseFromHttpWeb = responseFromHttpWeb.ToUpper();
                         if (responseFromHttpWeb.Contains("INVALID USER"))
                         {
-                            AccountStatusText = "Account is invalid";
+                            AccountStatusText = "Sorry! Account is invalid";
                         }
                         else
                         {
@@ -598,7 +599,7 @@ namespace Echo
                     }
                     else
                     {
-                        AccountStatusText = "Server not OK";
+                        AccountStatusText = "Server not OK!";
                     }
 
                     // Clean up the streams.
@@ -612,16 +613,16 @@ namespace Echo
                 }
                 catch (Exception ex)
                 {
-                    AccountStatusText = "Network error";
+                    AccountStatusText = "Network error!";
                 }
             }
             else
             {
-                AccountStatusText = "Network unplugged";
+                AccountStatusText = "Network unplugged!";
             }
         }
 
-        private void HttpCallforSMS(int PhnNum, String SMSContentString)
+        private void HttpCalltoTeletalk(int PhnNum, String SMSContentString)
         {
             string responseFromHttpWeb = "";
 
@@ -796,7 +797,7 @@ namespace Echo
             {
                 if (NumberofFailtoSendSMS > 0 && NumberofFailtoSendSMS < 7)
                 {
-                    HttpCallforSMS(PhnNum, SMSContentString);
+                    HttpCalltoTeletalk(PhnNum, SMSContentString);
                 }
                 else if (NumberofFailtoSendSMS >= 7)
                 {
