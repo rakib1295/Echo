@@ -588,18 +588,26 @@ namespace Echo
                     if (((HttpWebResponse)response).StatusDescription == "OK")
                     {
                         responseFromHttpWeb = responseFromHttpWeb.ToUpper();
-                        if (responseFromHttpWeb.Contains("INVALID USER"))
+                        if (responseFromHttpWeb.Contains("INVALID USER") || responseFromHttpWeb.Contains("WRONG USER"))
                         {
-                            AccountStatusText = "Sorry! Account is invalid";
+                            AccountStatusText = "Sorry! Account is invalid :(";
+                        }
+                        else if(responseFromHttpWeb.Contains("EMPTY SMS"))
+                        {
+                            AccountStatusText = "Congrats! Account is valid :)";
                         }
                         else
                         {
-                            AccountStatusText = "Congrats! Account is valid";
+                            AccountStatusText = "Not sure!! :(";
+                            LogViewer = responseFromHttpWeb;
+                            Write_logFile("Not sure!! " + LogViewer);
                         }
                     }
                     else
                     {
                         AccountStatusText = "Server not OK!";
+                        LogViewer = responseFromHttpWeb;
+                        Write_logFile("Server not OK! " + LogViewer);
                     }
 
                     // Clean up the streams.
@@ -613,12 +621,12 @@ namespace Echo
                 }
                 catch (Exception ex)
                 {
-                    AccountStatusText = "Network error!";
+                    AccountStatusText = "Network error! :(";
                 }
             }
             else
             {
-                AccountStatusText = "Network unplugged!";
+                AccountStatusText = "Network unplugged! :(";
             }
         }
 

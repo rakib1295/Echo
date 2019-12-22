@@ -45,7 +45,7 @@ namespace Echo
         public MainWindow()
         {
             InitializeComponent();
-            
+
             timerforPopup.Tick += timer_TickForPopup;
             timerforPopupEdit.Tick += timer_TickForPopupEdit;
             Browse_Btn_Animation();
@@ -128,7 +128,7 @@ namespace Echo
                 _itm = (Entity)IPListView.SelectedItem;
                 _NodeName.Text = _itm.Name;
                 _NodeIP.Text = _itm.IpAddress;
-                _NodeStatus.Text = _itm.Status;                
+                _NodeStatus.Text = _itm.Status;
 
                 if (_itm.Action_Type == NodeType.SMSENABLED.ToString())
                 {
@@ -143,7 +143,7 @@ namespace Echo
                     Edit_btn.Content = "Enable SMS for this link ->";
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Show_LogTextblock("Please double click again.");
                 VM.Write_logFile("Exception while double clicking on a link: " + ex.Message + " <" + ex.GetType().ToString() + ">");
@@ -184,7 +184,7 @@ namespace Echo
             //if (MessageBox.Show("Do you really want to close Echo?", "Warning", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
             //{
             //    //IconInstance.Dispose(); ///////////////////////////////////////////////////////////////////////////////////////////////////////////tray
-                
+
             //}
             this.Close();
         }
@@ -254,8 +254,6 @@ namespace Echo
             if (MessageBox.Show("Do you want to reset settings data to default value?", VM.Title, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             {
                 SMS_Checkbox.IsChecked = true;
-                user_name.Text = "noc";
-                acc_psw.Password = "Noc$1234";
                 Properties.Settings.Default.ParcentLoss = "90";
                 SMSInterval_txtbox.Text = "120";
                 RefreshInterval_txtbox.Text = "10";
@@ -346,7 +344,7 @@ namespace Echo
                 {
                     Dispatcher.BeginInvoke((Action)(() =>
                     {
-                        _WebReplyRun1.Text = "Balance in Teletalk account: " + DateTime.Now.ToString() + "\n";                        
+                        _WebReplyRun1.Text = "Balance in Teletalk account: " + DateTime.Now.ToString() + "\n";
                         _WebReplyRun2.Text = VM.CreditStatus;
                     }));
                 }
@@ -381,11 +379,14 @@ namespace Echo
                     }
                 }));
             }
-            Dispatcher.BeginInvoke((Action)(() =>
-            {
-                AccTest_Txtblk.Text = VM.AccountStatusText;
-            }));
-        }
+            else if (e.PropertyName == "AccountStatusText")
+            { 
+                Dispatcher.BeginInvoke((Action)(() =>
+                {
+                    AccTest_Txtblk.Text = VM.AccountStatusText;
+                }));
+            }
+        } 
 
 
         DispatcherTimer AnimationTimer = new DispatcherTimer();  //for logo
