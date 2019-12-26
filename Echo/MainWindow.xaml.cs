@@ -1084,7 +1084,7 @@ namespace Echo
                 "\n  1. Please at first browse excel file from file menu, if 'Load Excel' button blinks. There should be two sheets in excel file: A) 1st sheet will contain router or switch info. B) 2nd sheet will contain phone number list for sending message." +
                 "\n  2. In first sheet of excel, there will be 4 columns: i)IP ii)Link name iii)Link type iv)Area. First row will be column headers." +
                 "\n  3. In second sheet of excel, there will be phone numbers in first column. Again first row will be column headers. Phone numbers must be in 10 digits (starts with '1' not '0')." +
-                "\n  4. After browsing the excel file, click the 'Load Excel' button." +
+                "\n  4. After browsing the excel file, give username and password for Teletalk account in settings then click the 'Load Excel' button." +
                 "\n  5. If you need to adjust SMS time interval, refresh interval and ping sense period, do it from settings." +
                 "\n  6. You can add message header or footer from settings, but be careful about message size." +
                 "\n  7. You can adjust minimum packet loss value (in percent) from settings, which will indicate the node is down." +
@@ -1096,7 +1096,7 @@ namespace Echo
                 "\n  13. Each log data will be saved to this directory:- C:\\Users\\Public\\" + VM.Title + " Log" +
                 "\n  14. You can click on column name to sort by ascending or descending." +
                 "\n  15. You can search any data from the list by writing any search entry at search box. At first select from 'Search by' by which you want to search." +
-                "\n  16. Add text in 'All links up message box' in settings, which will be the message if all links are up." +
+                "\n  16. Add text in 'All links up' message box in settings, which will be the message if all links are up." +
                 "\n  17. You can disable SMS sytem from settings. It will disable SMS system only, but pinging will still be continuing." +
                 "\n  18. You can stop sending SMS when all nodes are up by unchecking 'Send SMS even all nodes are up' at SMS Settings." +
                 "\n  19. You can stop sending SMS for a particular link temporarily. To do this, double click on a link and disable its SMS.";
