@@ -1,4 +1,6 @@
 .vs
 /Echo/bin
 /Echo/obj
+/Echo/Echo*
+/Echo/publish
 /Echo/Echo_TemporaryKey.pfx

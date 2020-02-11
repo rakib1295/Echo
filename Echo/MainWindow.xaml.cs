@@ -1141,7 +1141,7 @@ namespace Echo
         private void AccTest_btn_Click(object sender, RoutedEventArgs e)
         {
             VM.AccountStatusText = "Please wait......";
-            VM.AccountTestTask();            
+            VM.AccountTestTask();
         }
     }
 }

@@ -102,7 +102,7 @@
                     <TextBlock x:Name="textblock2" TextWrapping="Wrap" Text="Current time: " FontWeight="Bold" VerticalAlignment="Top" Margin="5,0"/>
                     <TextBlock x:Name="clock_textblock" HorizontalAlignment="Left" TextWrapping="Wrap" Text="Clock" VerticalAlignment="Top" Width="auto" Margin="5,0"/>
                 </StackPanel>
-                <Image Grid.Row="1" x:Name="logo_img" Source="Images/BTCL-logo.png"  HorizontalAlignment="Center"  VerticalAlignment="Top" />
+                <Image Grid.Row="1" x:Name="logo_img" Source="Images/BTCL-logo2.png"  HorizontalAlignment="Center"  VerticalAlignment="Top" />
 
                 <Grid Grid.Row="2">
                     <Grid.RowDefinitions>

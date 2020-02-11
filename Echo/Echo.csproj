@@ -26,8 +26,8 @@
     <MapFileExtensions>true</MapFileExtensions>
     <ProductName>Echo</ProductName>
     <PublisherName>Md. Rakib Subaid</PublisherName>
-    <ApplicationRevision>73</ApplicationRevision>
-    <ApplicationVersion>4.4.0.%2a</ApplicationVersion>
+    <ApplicationRevision>76</ApplicationRevision>
+    <ApplicationVersion>4.5.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -177,9 +177,6 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\BTCL-logo.png" />
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="Images\echo_1.png" />
     <Resource Include="Images\echo_2.png" />
   </ItemGroup>
@@ -238,6 +235,9 @@
       <Progid>1</Progid>
       <DefaultIcon>echo_crop_5qo_icon.ico</DefaultIcon>
     </FileAssociation>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\BTCL-logo2.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
