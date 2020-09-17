@@ -114,7 +114,17 @@ namespace Echo
 
         public String LastPingStatus { get; set; } = "Unknown";
 
-        public String Status { get; set; } = "Unknown";
+        private String _status = "Unknown";
+        public String Status
+        {
+            get { return _status; }
+            set
+            {
+                _status = value;
+                // Call OnPropertyChanged whenever the property is updated
+                OnPropertyChanged("NextSMSTime");
+            }
+        }
 
 
         public event PropertyChangedEventHandler PropertyChanged;
