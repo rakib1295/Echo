@@ -39,6 +39,7 @@ namespace Echo
         public ViewModel()
         {
             this.PropertyChanged += ViewModel_PropertyChanged;
+            
             TimerforUIupdate();
             TimerforStatusResetAndSMS();
             TimerforNetChecking();
@@ -206,7 +207,7 @@ namespace Echo
             set
             {
                 _nodeslist = value;
-                OnPropertyChanged("NodeslistChanged");
+                //OnPropertyChanged("NodeslistChanged");
             }
         }
 
@@ -216,7 +217,7 @@ namespace Echo
             set
             {
                 _downrouterslist = value;
-                OnPropertyChanged("DownRoutersListChanged");
+                //OnPropertyChanged("DownRoutersListChanged");
             }
         }
 
@@ -233,7 +234,19 @@ namespace Echo
             set
             {
                 _nodes = value;
-                OnPropertyChanged("NodesChanged");
+                //OnPropertyChanged("NodesChanged");
+            }
+        }
+
+        private void Node_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "Status")
+            {
+                Entity en = sender as Entity;
+                if(en.Status == "Down")
+                {
+                    timeCounter = SMSInterval - PingSensePeriodForSMS - 1;
+                }
             }
         }
 
@@ -287,18 +300,18 @@ namespace Echo
                     }
                 }));
             }
-            else if (e.PropertyName == "NodeslistChanged")
-            {
+            //else if (e.PropertyName == "NodeslistChanged")
+            //{
 
-            }
-            else if (e.PropertyName == "DownRoutersListChanged")
-            {
+            //}
+            //else if (e.PropertyName == "DownRoutersListChanged")
+            //{
 
-            }
-            else if (e.PropertyName == "NodesChanged")
-            {
+            //}
+            //else if (e.PropertyName == "NodesChanged")
+            //{
 
-            }
+            //}
             else if (e.PropertyName == "StartPingFunctionality")
             {
                 StarOrStopPingRequest();
@@ -1183,6 +1196,8 @@ namespace Echo
 
                     _nd.Area = xlWorkSheet1.Cells[i, 4].Value2.ToString();
 
+                    _nd.PropertyChanged += Node_PropertyChanged;
+
                     //_nd.Zone = xlWorkSheet1.Cells[i, 5].Value2.ToString();
                     NodesList.Add(_nd);
                 }
@@ -1238,6 +1253,7 @@ namespace Echo
                 releaseObject(xlApp);
             }
         }
+
 
         private void releaseObject(object obj)
         {
@@ -1305,22 +1321,26 @@ namespace Echo
                                 if (NodesList[index].PercentageLoss >= 0 && NodesList[index].PercentageLoss <= 20)
                                 {
                                     NodesList[index].Color_Type2 = Colors.Green;
-                                    NodesList[index].Status = "Up";
+                                    if(NodesList[index].Status != "Up")
+                                        NodesList[index].Status = "Up";
                                 }
                                 else if (NodesList[index].PercentageLoss > 20 && NodesList[index].PercentageLoss <= 50)
                                 {
                                     NodesList[index].Color_Type2 = Colors.Blue;
-                                    NodesList[index].Status = "Moderate";
+                                    if (NodesList[index].Status != "Moderate")
+                                        NodesList[index].Status = "Moderate";
                                 }
                                 else if (NodesList[index].PercentageLoss > 50 && NodesList[index].PercentageLoss < Entity.UpDownIndicator)
                                 {
                                     NodesList[index].Color_Type2 = Colors.DarkOrange;
-                                    NodesList[index].Status = "Poor";
+                                    if (NodesList[index].Status != "Poor")
+                                        NodesList[index].Status = "Poor";
                                 }
                                 else if (NodesList[index].PercentageLoss >= Entity.UpDownIndicator)
                                 {
                                     NodesList[index].Color_Type2 = Colors.Red;
-                                    NodesList[index].Status = "Down";
+                                    if (NodesList[index].Status != "Down")
+                                        NodesList[index].Status = "Down";
                                 }
                             }
                             else

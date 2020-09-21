@@ -122,7 +122,7 @@ namespace Echo
             {
                 _status = value;
                 // Call OnPropertyChanged whenever the property is updated
-                OnPropertyChanged("NextSMSTime");
+                OnPropertyChanged("Status");
             }
         }
 
