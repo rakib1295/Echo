@@ -112,6 +112,11 @@ namespace Echo
         //    }
         //}
 
+
+        public DateTime? UpTime = new DateTime();
+
+        public DateTime? DownTime = new DateTime();
+
         public String LastPingStatus { get; set; } = "Unknown";
 
         private String _status = "Unknown";

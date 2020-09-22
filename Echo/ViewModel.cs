@@ -47,7 +47,7 @@ namespace Echo
             _nodes = new ObservableCollection<Entity>();
             _nodeslist = new List<Entity>();
             _phonenumberlist = new List<int>();
-            _downrouterslist = new List<Entity>();
+            _downnodeslist = new List<Entity>();
             //_zonelist = new List<Zone>();
         }
 
@@ -188,7 +188,8 @@ namespace Echo
 
         private ObservableCollection<Entity> _nodes;
         private IList<Entity> _nodeslist;
-        private IList<Entity> _downrouterslist;
+        private IList<Entity> _downnodeslist;
+        private IList<Entity> _upnodeslist;
         private IList<int> _phonenumberlist;
         //private IList<Zone> _zonelist;
 
@@ -211,15 +212,26 @@ namespace Echo
             }
         }
 
-        public IList<Entity> DownRoutersList
+        public IList<Entity> DownNodesList
         {
-            get { return _downrouterslist; }
+            get { return _downnodeslist; }
             set
             {
-                _downrouterslist = value;
+                _downnodeslist = value;
                 //OnPropertyChanged("DownRoutersListChanged");
             }
         }
+
+        public IList<Entity> UPNodesList
+        {
+            get { return _upnodeslist; }
+            set
+            {
+                _upnodeslist = value;
+                //OnPropertyChanged("DownRoutersListChanged");
+            }
+        }
+
 
         public IList<int> PhoneNumberList
         {
@@ -238,6 +250,7 @@ namespace Echo
             }
         }
 
+        bool PingSenseFlag = false;
         private void Node_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == "Status")
@@ -245,9 +258,92 @@ namespace Echo
                 Entity en = sender as Entity;
                 if(en.Status == "Down")
                 {
-                    timeCounter = SMSInterval - PingSensePeriodForSMS - 1;
+                    en.DownTime = DateTime.Now;
+                    //DownNodesList4DB.Add(en);
+                    if (!PingSenseFlag)
+                    {
+                        timeCounter = SMSInterval - PingSensePeriodForSMS - 1;
+                        PingSenseFlag = true;
+                        NextSMSTime = DateTime.Now.AddMinutes(PingSensePeriodForSMS).ToLongTimeString();
+                    }
+                }
+                else if(en.Status == "Up")
+                {
+                    en.UpTime = DateTime.Now;
+                    UPNodesList.Add(en);
+                    if(!PingSenseFlag)
+                    {
+                        timeCounter = SMSInterval - PingSensePeriodForSMS - 1;
+                        PingSenseFlag = true;/////////////////////////////////////////////////////////////////******************************************
+                        NextSMSTime = DateTime.Now.AddMinutes(PingSensePeriodForSMS).ToLongTimeString();
+                    }
                 }
             }
+        }
+
+        List<Entity> TempDown = new List<Entity>();
+
+        int DCount = 0, UCount = 0;
+        private string BuildSMSContent_DownNodes()
+        {
+            string SMSContentString = "";
+            DownNodesList.Clear();
+            DownNodesList = NodesList.Where(s => (s.Status == "Down")).ToList<Entity>();
+
+            //TempDown = NodesList.Where(s => (s.Status == "Down")).ToList<Entity>();
+
+            DCount = 0;
+
+            if (DownNodesList.Count > 0)
+            {
+                foreach (var item in DownNodesList)
+                {
+                    item.DownTime = DateTime.Now;
+                    item.UpTime = null;
+
+                    //queue
+                    if (item.Action_Type == NodeType.SMSENABLED.ToString())
+                    {
+                        SMSContentString = item.Area + ", " + SMSContentString;
+                        DCount++;
+                    }
+                }
+            }
+
+            return SMSContentString;
+        }
+
+        private string BuildSMSContent_UpNodes()
+        {
+            string SMSContentString = "";
+
+            if (UPNodesList.Count > 0)
+            {
+                foreach (var item in UPNodesList)
+                {
+                    if (DownNodesList.Contains(item))
+                    {
+                        UPNodesList.Remove(item);
+                    }
+                }
+            }
+
+            UCount = 0;
+            if (UPNodesList.Count > 0)
+            {
+                foreach (var item in UPNodesList)
+                {
+                    item.DownTime = null;
+                    //UPNodesList4DB.Add(item);///////////////queue
+                    if (item.Action_Type == NodeType.SMSENABLED.ToString())
+                    {
+                        SMSContentString = item.Area + ", " + SMSContentString;
+                        UCount++;
+                    }
+                }
+            }
+
+            return SMSContentString;
         }
 
 
@@ -352,7 +448,7 @@ namespace Echo
 
         void TimerforStatusResetAndSMS()
         {
-            StatusResetAndSMSTimer.Interval = 60000;//1 minute/////////////////////////////////////////////consider always////////////////////////////////////////////////////
+            StatusResetAndSMSTimer.Interval = 60000;//1 minute (60000) is fixed for release/////////////////////////////////////////////consider always////////////////////////////////////////////////////
             StatusResetAndSMSTimer.AutoReset = true;
             StatusResetAndSMSTimer.Elapsed += StatusResetAndSMSTimer_Elapsed;
         }
@@ -446,10 +542,11 @@ namespace Echo
             int downnodescount = NodesList.Where(s => (s.Status == "Down" || s.Status == "Unknown")).ToList<Entity>().Count;
             if (downnodescount != NodesList.Count)
             {
-                String SMSContentString = "";
-                SMSContentString = BuildSMSContent();
-
-                SMSTrigger(SMSContentString);
+                String SMSContentString_downNodes = "";
+                String SMSContentString_UpNodes = "";
+                SMSContentString_downNodes = BuildSMSContent_DownNodes();
+                SMSContentString_UpNodes = BuildSMSContent_UpNodes();
+                SMSTrigger(SMSContentString_downNodes, SMSContentString_UpNodes);
 
             }
             else
@@ -463,37 +560,33 @@ namespace Echo
         }
 
 
-        void SMSTrigger(String SMSContentString)
+        void SMSTrigger(String SMSContentString_DownNodes, String SMSContentString_UpNodes)
         {
-            //StartPingFunctionality = false;
-            //Thread.Sleep(1000);
-
-
             NumberofDestination = PhoneNumberList.Count;
             NumberofFailtoSendSMS = 0;
-            int contentlen = SMSContentString.Length;
+            int contentlen = SMSContentString_DownNodes.Length;
 
-            if (SMSContentString != "")
+            if (SMSContentString_DownNodes != "")
             {
-                if (SMSContentString[contentlen - 1] == ' ')
+                if (SMSContentString_DownNodes[contentlen - 1] == ' ')
                 {
-                    SMSContentString = SMSContentString.Substring(0, contentlen - 2);
+                    SMSContentString_DownNodes = SMSContentString_DownNodes.Substring(0, contentlen - 2);
                 }
 
-                if(DownRoutersList.Count > 1)
+                if(DownNodesList.Count > 1)
                 {
-                    SMSContentString = SMSContentString + " links are down.";
+                    SMSContentString_DownNodes = SMSContentString_DownNodes + " links are down.";
                 }
-                else if(DownRoutersList.Count == 1)
+                else if(DownNodesList.Count == 1)
                 {
-                    SMSContentString = SMSContentString + " link is down.";
+                    SMSContentString_DownNodes = SMSContentString_DownNodes + " link is down.";
                 }
             }
             else
             {
                 if (SMSEvenAllUp)
                 {
-                    SMSContentString = AllLinksUpMessage;
+                    SMSContentString_DownNodes = AllLinksUpMessage;
                 }
                 else
                 {
@@ -501,38 +594,14 @@ namespace Echo
                 }
             }
 
-            if (SMSContentString != "")
+            if (SMSContentString_DownNodes != "")
             {
-                LogViewer = SMSContentString;
-                Write_logFile(SMSContentString);
+                LogViewer = SMSContentString_DownNodes;
+                Write_logFile(SMSContentString_DownNodes);
 
-                //contentlen = SMSContentString.Length;
-                //int headerlen = Message_Header.Length;
-                //int footerlen = Message_Footer.Length;
 
-                SMSContentString = Message_Header + "\n" + SMSContentString + " \n" + Message_Footer;
+                SMSContentString_DownNodes = Message_Header + "\n" + SMSContentString_DownNodes + " \n" + Message_Footer;
 
-                //if (contentlen <= 160)
-                //{
-                //    if (contentlen + footerlen <= 159 && Message_Footer != "")
-                //    {
-                //        if (headerlen + contentlen + footerlen <= 158 && Message_Header != "")
-                //        {
-                //            SMSContentString = Message_Header + "\n" + SMSContentString + " \n" + Message_Footer;
-                //        }
-                //        else
-                //        {
-                //            SMSContentString = SMSContentString + "\n" + Message_Footer;
-                //        }
-                //    }
-                //}
-                //else
-                //{
-                //    SMSContentString = SMSContentString.Substring(0, 160);
-                //    contentlen = SMSContentString.Length;
-                //    HttpCallforSMS(1917300427, SMSContentString);
-                //    SentMsgCount = 0;
-                //}
 
                 LogViewer = "Sending SMS, please wait ... .. .";
                 Write_logFile(LogViewer);
@@ -541,7 +610,7 @@ namespace Echo
                 {
                     if (NumberofFailtoSendSMS == 0)
                     {
-                        HttpCalltoTeletalk(phnNum, SMSContentString);
+                        HttpCalltoTeletalk(phnNum, SMSContentString_DownNodes);
                     }
                 }
             }
@@ -827,173 +896,6 @@ namespace Echo
                 }
             }
         }
-
-
-        private string BuildSMSContent()
-        {
-            string SMSContentString = "";
-            DownRoutersList.Clear();
-            DownRoutersList = NodesList.Where(s => (s.Status == "Down" && s.Action_Type == NodeType.SMSENABLED.ToString())).ToList<Entity>();
-
-            if(DownRoutersList.Count > 0)
-            {
-                foreach (var item in DownRoutersList)
-                {
-                    SMSContentString = item.Area + ", " + SMSContentString;
-                }
-            }
-
-            return SMSContentString;
-        }
-
-        //private String BuildSMSContent()
-        //{
-        //    DownRoutersList.Clear();
-        //    DownRoutersList = NodesList.Where(s => (s.AvgPingStatus == "Down" && s.Node_Type == NodeType.Router.ToString())).ToList<Entity>();
-
-
-        //    IEnumerable<String> duplicatesZone = from item in DownRoutersList
-        //                                         select item.Zone;
-
-
-        //    IEnumerable<String> nonDuplicatedZone = duplicatesZone.Distinct();
-
-        //    String SMSContentString = "";
-
-        //    foreach (var item in nonDuplicatedZone)
-        //    {
-        //        int count = (from _itm in duplicatesZone
-        //                     where _itm == item
-        //                     select _itm).Count();
-
-        //        int countinZonelist = 0;
-
-        //        foreach (var _itm in ZoneList)
-        //        {
-        //            if (_itm.ZoneName == item)
-        //            {
-        //                countinZonelist = _itm.ZoneCount;
-        //                break;
-        //            }
-        //        }
-
-        //        if (count == countinZonelist) //////from zone
-        //        {
-        //            if (!SMSContentString.Contains(item))
-        //            {
-        //                Entity _ent = null;
-        //                try
-        //                {
-        //                    IEnumerable<Entity> zoneObj = from obj in NodesList
-        //                                                  where obj.Node_Type == "Router" && obj.Area == item
-        //                                                  select obj;
-        //                    _ent = zoneObj.ElementAt(0);
-        //                }
-        //                catch (Exception e)
-        //                {
-        //                    LogViewer = "Error: " + item + "- no router found with this name. " + e.Message + " <" + e.GetType().ToString() + ">";
-        //                    Write_logFile("Error: " + item + "- no router found with this name. " + e.Message + " <" + e.GetType().ToString() + ">");
-        //                    _ent = null;
-        //                }
-
-
-        //                if (_ent != null && _ent.AvgPingStatus != "Down")
-        //                {
-        //                    foreach (var _itm in DownRoutersList)
-        //                    {
-        //                        if (item == _itm.Zone)
-        //                        {
-        //                            if (!SMSContentString.Contains(_itm.Area))
-        //                            {
-        //                                if (nonDuplicatedZone.Contains(_itm.Area))
-        //                                {
-        //                                    SMSContentString = _itm.Area + " " + Zone_Footer + ", " + SMSContentString;
-        //                                }
-        //                                else
-        //                                {
-        //                                    SMSContentString = _itm.Area + ", " + SMSContentString;
-        //                                }
-        //                            }
-        //                        }
-        //                    }
-        //                }
-        //                else
-        //                {
-        //                    string superzone = "";
-        //                    foreach (var _newitem in DownRoutersList)
-        //                    {
-        //                        if (_newitem.Area == item)
-        //                        {
-        //                            superzone = _newitem.Zone;
-        //                            break;
-        //                        }
-        //                    }
-        //                    if (!SMSContentString.Contains(superzone) || superzone == "")  //checks if superzone is already added or not
-        //                    {
-        //                        if (superzone == "")
-        //                        {
-        //                            SMSContentString = item + " " + Zone_Footer + ", " + SMSContentString;//need to add 'zone'
-        //                        }
-        //                        else
-        //                        {
-        //                            int _newcount = (from _itm in duplicatesZone
-        //                                             where _itm == superzone
-        //                                             select _itm).Count();
-
-
-        //                            int _countinZonelist = 0;
-
-        //                            foreach (var _itm in ZoneList) //checks if superzone will be added or not
-        //                            {
-        //                                if (_itm.ZoneName == superzone)
-        //                                {
-        //                                    _countinZonelist = _itm.ZoneCount;
-        //                                    break;
-        //                                }
-        //                            }
-        //                            if (_newcount == _countinZonelist)
-        //                            {
-        //                                if (_newcount == 1)
-        //                                {
-        //                                    SMSContentString = superzone + ", " + SMSContentString;
-        //                                }
-        //                                else
-        //                                    SMSContentString = superzone + " " + Zone_Footer + ", " + SMSContentString;//need to add 'zone'
-        //                            }
-        //                            else
-        //                            {
-        //                                SMSContentString = item + " " + Zone_Footer + ", " + SMSContentString;//need to add 'zone'
-        //                            }
-        //                        }
-        //                    }
-        //                }
-        //            }
-        //        }
-        //        else   //////from area
-        //        {
-        //            foreach (var _itm in DownRoutersList)
-        //            {
-        //                if (item == _itm.Zone)
-        //                {
-        //                    if (!SMSContentString.Contains(_itm.Area))
-        //                    {
-        //                        if (nonDuplicatedZone.Contains(_itm.Area))
-        //                        {
-        //                            SMSContentString = _itm.Area + " " + Zone_Footer + ", " + SMSContentString;
-        //                        }
-        //                        else
-        //                        {
-        //                            SMSContentString = _itm.Area + ", " + SMSContentString;
-        //                        }
-        //                    }
-        //                }
-        //            }
-        //        }
-        //    }
-
-        //    return SMSContentString;
-        //}
-
 
 
         private static System.Timers.Timer UIupdateTimer = new System.Timers.Timer();
