@@ -31,6 +31,7 @@ namespace Echo
         public bool SMSActive = true;
         public bool SMSEvenAllUp = true;
         public String Title = "";
+        private bool AppLoadedFlag = true;
 
         private String _logviewer = "";
         public string Destination_Excel_url = "";///////////////////////////////////////////
@@ -43,11 +44,13 @@ namespace Echo
             TimerforUIupdate();
             TimerforStatusResetAndSMS();
             TimerforNetChecking();
+            TimerforAppLoading();
 
             _nodes = new ObservableCollection<Entity>();
             _nodeslist = new List<Entity>();
             _phonenumberlist = new List<int>();
             _downnodeslist = new List<Entity>();
+            _upnodeslist = new List<Entity>();
             //_zonelist = new List<Zone>();
         }
 
@@ -250,27 +253,45 @@ namespace Echo
             }
         }
 
+
+        private static System.Timers.Timer AppLoadingTimer = new System.Timers.Timer();
+
+        private void TimerforAppLoading()
+        {
+            AppLoadingTimer.Interval = PingSensePeriodForSMS * 60 * 1000;
+            AppLoadingTimer.AutoReset = true;
+            AppLoadingTimer.Elapsed += AppLoadingTimerTimer_Tick;            
+        }
+
+        private void AppLoadingTimerTimer_Tick(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            AppLoadedFlag = false;
+            AppLoadingTimer.Stop();
+        }
+
+
         bool PingSenseFlag = false;
         private void Node_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == "Status")
+            if (e.PropertyName == "Status" && !AppLoadedFlag)
             {
                 Entity en = sender as Entity;
                 if(en.Status == "Down")
                 {
                     en.DownTime = DateTime.Now;
-                    //DownNodesList4DB.Add(en);
                     if (!PingSenseFlag)
                     {
                         timeCounter = SMSInterval - PingSensePeriodForSMS - 1;
                         PingSenseFlag = true;
-                        NextSMSTime = DateTime.Now.AddMinutes(PingSensePeriodForSMS).ToLongTimeString();
+                        NextSMSTime = DateTime.Now.AddMinutes(PingSensePeriodForSMS + 1).ToLongTimeString();
                     }
                 }
                 else if(en.Status == "Up")
                 {
                     en.UpTime = DateTime.Now;
-                    UPNodesList.Add(en);
+
+                    if(!UPNodesList.Contains(en))
+                        UPNodesList.Add(en);
                     if(!PingSenseFlag)
                     {
                         timeCounter = SMSInterval - PingSensePeriodForSMS - 1;
@@ -281,7 +302,6 @@ namespace Echo
             }
         }
 
-        List<Entity> TempDown = new List<Entity>();
 
         int DCount = 0, UCount = 0;
         private string BuildSMSContent_DownNodes()
@@ -290,7 +310,6 @@ namespace Echo
             DownNodesList.Clear();
             DownNodesList = NodesList.Where(s => (s.Status == "Down")).ToList<Entity>();
 
-            //TempDown = NodesList.Where(s => (s.Status == "Down")).ToList<Entity>();
 
             DCount = 0;
 
@@ -329,6 +348,7 @@ namespace Echo
             }
 
             UCount = 0;
+
             if (UPNodesList.Count > 0)
             {
                 foreach (var item in UPNodesList)
@@ -562,6 +582,7 @@ namespace Echo
 
         void SMSTrigger(String SMSContentString_DownNodes, String SMSContentString_UpNodes)
         {
+            String SMSContentString = "";
             NumberofDestination = PhoneNumberList.Count;
             NumberofFailtoSendSMS = 0;
             int contentlen = SMSContentString_DownNodes.Length;
@@ -572,21 +593,44 @@ namespace Echo
                 {
                     SMSContentString_DownNodes = SMSContentString_DownNodes.Substring(0, contentlen - 2);
                 }
+            }
 
-                if(DownNodesList.Count > 1)
+            contentlen = SMSContentString_UpNodes.Length;
+
+            if (SMSContentString_UpNodes != "")
+            {
+                if (SMSContentString_UpNodes[contentlen - 1] == ' ')
                 {
-                    SMSContentString_DownNodes = SMSContentString_DownNodes + " links are down.";
+                    SMSContentString_UpNodes = SMSContentString_UpNodes.Substring(0, contentlen - 2);
                 }
-                else if(DownNodesList.Count == 1)
+            }
+
+
+            if (UCount + DCount > 0)
+            {
+                if (UCount > 1)
                 {
-                    SMSContentString_DownNodes = SMSContentString_DownNodes + " link is down.";
+                    SMSContentString = SMSContentString_UpNodes + " links are up.\n";
+                }
+                else if (UCount == 1)
+                {
+                    SMSContentString = SMSContentString_UpNodes + " link is up.\n";
+                }
+
+                if (DCount > 1)
+                {
+                    SMSContentString = SMSContentString_DownNodes + " links are down.\n";
+                }
+                else if (DCount == 1)
+                {
+                    SMSContentString = SMSContentString_DownNodes + " link is down.\n";
                 }
             }
             else
             {
                 if (SMSEvenAllUp)
                 {
-                    SMSContentString_DownNodes = AllLinksUpMessage;
+                    SMSContentString = AllLinksUpMessage + "\n";
                 }
                 else
                 {
@@ -594,13 +638,13 @@ namespace Echo
                 }
             }
 
-            if (SMSContentString_DownNodes != "")
+            if (SMSContentString != "")
             {
-                LogViewer = SMSContentString_DownNodes;
-                Write_logFile(SMSContentString_DownNodes);
+                LogViewer = SMSContentString.Substring(0, SMSContentString.Length - 1);
+                Write_logFile(LogViewer);
 
 
-                SMSContentString_DownNodes = Message_Header + "\n" + SMSContentString_DownNodes + " \n" + Message_Footer;
+                SMSContentString = Message_Header + "\n" + SMSContentString + Message_Footer;
 
 
                 LogViewer = "Sending SMS, please wait ... .. .";
@@ -610,7 +654,7 @@ namespace Echo
                 {
                     if (NumberofFailtoSendSMS == 0)
                     {
-                        HttpCalltoTeletalk(phnNum, SMSContentString_DownNodes);
+                        HttpCalltoTeletalk(phnNum, SMSContentString);
                     }
                 }
             }
@@ -811,6 +855,10 @@ namespace Echo
 
                         Write_logFile("Sent SMS today, total number of SMS: " + NumberofDestination.ToString() + "."); ///////////////////////////////////////////////////////////////
 
+                        UPNodesList.Clear();
+                        DCount = 0;
+                        UCount = 0;
+                        PingSenseFlag = false;
                         SentMsgCount = 0;
                         timeCounter = 0;
                         NextSMSTime = DateTime.Now.AddMinutes(SMSInterval).ToLongTimeString();
@@ -1137,6 +1185,8 @@ namespace Echo
                     PhoneNumberList.Add(Convert.ToInt32(str));
                 }
                 ExcelLoaded = true;
+                AppLoadedFlag = true;
+                AppLoadingTimer.Start();
             }
             catch (Exception ex)
             {
