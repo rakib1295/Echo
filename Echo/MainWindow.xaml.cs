@@ -215,22 +215,27 @@ namespace Echo
             else
             {
                 VM.DisposeTimers();
-                Properties.Settings.Default.SMS_Checkbox_Data = (bool)SMS_Checkbox.IsChecked;
-                Properties.Settings.Default.User_Name_String = user_name.Text;
-                Properties.Settings.Default.Password_String = acc_psw.Password;
-                Properties.Settings.Default.ParcentLoss = ParcentLoss_txtbox.Text;
-                Properties.Settings.Default.SMS_Interval = SMSInterval_txtbox.Text;
-                Properties.Settings.Default.Refresh_Interval = RefreshInterval_txtbox.Text;
-                Properties.Settings.Default.PingSenseTime = PingSenseTime_txtbox.Text;
-                Properties.Settings.Default.MsgHeader = MsgHeader_txtbox.Text;
-                Properties.Settings.Default.MsgFooter = MsgFooter_txtbox.Text;
-                Properties.Settings.Default.SMSIfAllUp = (bool)SMSIfAllUp_Checkbox.IsChecked;
-                Properties.Settings.Default.AllLinksUp_txt = AllLinksUp_txtbox.Text;
-
-                Properties.Settings.Default.Save();
+                SaveSettings();
             }
 
             //IconInstance.Dispose();
+        }
+
+        private void SaveSettings()
+        {
+            Properties.Settings.Default.SMS_Checkbox_Data = (bool)SMS_Checkbox.IsChecked;
+            Properties.Settings.Default.User_Name_String = user_name.Text;
+            Properties.Settings.Default.Password_String = acc_psw.Password;
+            Properties.Settings.Default.ParcentLoss = ParcentLoss_txtbox.Text;
+            Properties.Settings.Default.SMS_Interval = SMSInterval_txtbox.Text;
+            Properties.Settings.Default.Refresh_Interval = RefreshInterval_txtbox.Text;
+            Properties.Settings.Default.PingSenseTime = PingSenseTime_txtbox.Text;
+            Properties.Settings.Default.MsgHeader = MsgHeader_txtbox.Text;
+            Properties.Settings.Default.MsgFooter = MsgFooter_txtbox.Text;
+            Properties.Settings.Default.SMSIfAllUp = (bool)SMSIfAllUp_Checkbox.IsChecked;
+            Properties.Settings.Default.AllLinksUp_txt = AllLinksUp_txtbox.Text;
+
+            Properties.Settings.Default.Save();
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -962,6 +967,7 @@ namespace Echo
 
         private void Settings_OK_btn_Click_1(object sender, RoutedEventArgs e)
         {
+            SaveSettings();
             Popup_Settings.IsOpen = false;
         }
 

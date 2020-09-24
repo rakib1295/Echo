@@ -80,6 +80,50 @@ namespace Echo
             }
         }
 
+        public int SearchinCurrentDownNodes(string IPaddress)
+        {
+            string query = "select count(*) from CurrentDownNodes where IPAddress = '" + IPaddress + "'";
+
+            int Count = -1;
+
+            //Open Connection
+            if (this.OpenConnection() == true)
+            {
+                //Create Mysql Command
+                MySqlCommand cmd = new MySqlCommand(query, connection);
+
+                //ExecuteScalar will return one value
+                Count = int.Parse(cmd.ExecuteScalar() + "");
+
+                //close Connection
+                this.CloseConnection();
+
+                return Count;
+            }
+            else
+            {
+                return Count;
+            }
+        }
+
+        public void InsertDownNodes(string IPaddress, string Name, string Area, string DownTime)
+        {
+            string query = "INSERT INTO CurrentDownNodes (IPAddress, Name, Area, DownTime) VALUES('a', 'b', 'c', 'd')";
+
+            //open connection
+            if (this.OpenConnection() == true)
+            {
+                //create command and assign the query and connection from the constructor
+                MySqlCommand cmd = new MySqlCommand(query, connection);
+
+                //Execute command
+                cmd.ExecuteNonQuery();
+
+                //close connection
+                this.CloseConnection();
+            }
+        }
+
         //Insert statement
         public void Insert()
         {

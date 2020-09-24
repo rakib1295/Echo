@@ -36,6 +36,7 @@ namespace Echo
         private String _logviewer = "";
         public string Destination_Excel_url = "";///////////////////////////////////////////
 
+        DBConnect db = new DBConnect();
 
         public ViewModel()
         {
@@ -288,20 +289,42 @@ namespace Echo
                 }
                 else if(en.Status == "Up")
                 {
-                    en.UpTime = DateTime.Now;
-
                     if(!UPNodesList.Contains(en))
-                        UPNodesList.Add(en);
-                    if(!PingSenseFlag)
                     {
-                        timeCounter = SMSInterval - PingSensePeriodForSMS - 1;
-                        PingSenseFlag = true;/////////////////////////////////////////////////////////////////******************************************
-                        NextSMSTime = DateTime.Now.AddMinutes(PingSensePeriodForSMS).ToLongTimeString();
+                        DBTask(en);
                     }
                 }
             }
         }
 
+        public async void DBTask(Entity en)
+        {
+            Task tsk = DBTaskAsync(en);
+            await Task.WhenAll(tsk);
+            tsk.Dispose();
+        }
+
+        public Task DBTaskAsync(Entity en)
+        {
+            return Task.Run(() => SearchinDBDownList(en));
+        }
+
+        private void SearchinDBDownList(Entity en)
+        {
+            int count = 0;
+            count = db.SearchinCurrentDownNodes(en.IpAddress);
+            if(count > 0)
+            {
+                en.UpTime = DateTime.Now;
+                UPNodesList.Add(en);
+                if (!PingSenseFlag)
+                {
+                    timeCounter = SMSInterval - PingSensePeriodForSMS - 1;
+                    PingSenseFlag = true;
+                    NextSMSTime = DateTime.Now.AddMinutes(PingSensePeriodForSMS).ToLongTimeString();
+                }
+            }
+        }
 
         int DCount = 0, UCount = 0;
         private string BuildSMSContent_DownNodes()
@@ -319,6 +342,8 @@ namespace Echo
                 {
                     item.DownTime = DateTime.Now;
                     item.UpTime = null;
+
+                    //DBTask
 
                     //queue
                     if (item.Action_Type == NodeType.SMSENABLED.ToString())
