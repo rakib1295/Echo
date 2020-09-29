@@ -272,58 +272,90 @@ namespace Echo
 
 
         bool PingSenseFlag = false;
-        private void Node_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        private async void Node_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == "Status" && !AppLoadedFlag)
             {
                 Entity en = sender as Entity;
                 if(en.Status == "Down")
                 {
-                    en.DownTime = DateTime.Now;
-                    if (!PingSenseFlag)
+                    if (!DownNodesList.Contains(en))
                     {
-                        timeCounter = SMSInterval - PingSensePeriodForSMS - 1;
-                        PingSenseFlag = true;
-                        NextSMSTime = DateTime.Now.AddMinutes(PingSensePeriodForSMS + 1).ToLongTimeString();
-                    }
+                        int count = -1;
+                        count = await SearchinDBDownList(en);
+
+
+                        if (count == 0)
+                        {
+                            en.DownTime = DateTime.Now;
+                            //UPNodesList.Add(en);
+                            if (!PingSenseFlag)
+                            {
+                                timeCounter = SMSInterval - PingSensePeriodForSMS - 1;
+                                PingSenseFlag = true;
+                                NextSMSTime = DateTime.Now.AddMinutes(PingSensePeriodForSMS).ToLongTimeString();
+                            }
+                        }
+                        else if (count > 1)
+                        {
+                            MessageBox.Show("Down Table in MySQL has duplicate data", Title, MessageBoxButton.OK, MessageBoxImage.Error);
+                        }
+                    }                    
                 }
                 else if(en.Status == "Up")
                 {
                     if(!UPNodesList.Contains(en))
                     {
-                        DBTask(en);
+                        int count = -1;
+                        count = await SearchinDBDownList(en);
+
+
+                        if (count == 1)
+                        {
+                            en.UpTime = DateTime.Now;
+                            UPNodesList.Add(en);
+                            if (!PingSenseFlag)
+                            {
+                                timeCounter = SMSInterval - PingSensePeriodForSMS - 1;
+                                PingSenseFlag = true;
+                                NextSMSTime = DateTime.Now.AddMinutes(PingSensePeriodForSMS).ToLongTimeString();
+                            }
+                        }
+                        else if(count > 1)
+                        {
+                            MessageBox.Show("Down Table in MySQL has duplicate data", Title, MessageBoxButton.OK, MessageBoxImage.Error);
+                        }
                     }
                 }
             }
         }
 
-        public async void DBTask(Entity en)
-        {
-            Task tsk = DBTaskAsync(en);
-            await Task.WhenAll(tsk);
-            tsk.Dispose();
-        }
+        //public async Task<int> DBTask(Entity en)
+        //{
+        //    int count = 0;
+        //    Task<int> tsk = SearchinDBDownList(en);
+        //    await Task.WhenAll(tsk);
+            
+        //    count = tsk.Result;
+        //    tsk.Dispose();
+        //    return count;
+        //}
 
-        public Task DBTaskAsync(Entity en)
-        {
-            return Task.Run(() => SearchinDBDownList(en));
-        }
+        //public Task<int> DBTaskAsync(Entity en)
+        //{
+        //    return Task.Run(() => SearchinDBDownList(en));
+        //}
 
-        private void SearchinDBDownList(Entity en)
+        private async Task<int> SearchinDBDownList(Entity en)
         {
             int count = 0;
-            count = db.SearchinCurrentDownNodes(en.IpAddress);
-            if(count > 0)
+
+            lock(db)
             {
-                en.UpTime = DateTime.Now;
-                UPNodesList.Add(en);
-                if (!PingSenseFlag)
-                {
-                    timeCounter = SMSInterval - PingSensePeriodForSMS - 1;
-                    PingSenseFlag = true;
-                    NextSMSTime = DateTime.Now.AddMinutes(PingSensePeriodForSMS).ToLongTimeString();
-                }
+                count = db.SearchinCurrentDownNodes(en.IpAddress);
             }
+
+            return count;
         }
 
         int DCount = 0, UCount = 0;
