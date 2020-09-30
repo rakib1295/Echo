@@ -106,9 +106,12 @@ namespace Echo
             }
         }
 
-        public void InsertDownNodes(string IPaddress, string Name, string Area, string DownTime)
+        public void InsertDownNodes(string IPaddress, string Name, string Area, DateTime? DownTime)
         {
-            string query = "INSERT INTO CurrentDownNodes (IPAddress, Name, Area, DownTime) VALUES('a', 'b', 'c', 'd')";
+            string dt = "";
+            dt = DownTime.Value.ToString("yyyy-MM-dd HH:mm:ss");
+
+            string query = "INSERT INTO CurrentDownNodes (IPAddress, Name, Area, DownTime) VALUES('"+ IPaddress + "', '" + Name + "', '" + Area + "', '" + dt + "')";
 
             //open connection
             if (this.OpenConnection() == true)
@@ -117,7 +120,14 @@ namespace Echo
                 MySqlCommand cmd = new MySqlCommand(query, connection);
 
                 //Execute command
-                cmd.ExecuteNonQuery();
+                try
+                {
+                    cmd.ExecuteNonQuery();
+                }
+                catch (MySqlException ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
 
                 //close connection
                 this.CloseConnection();
@@ -134,9 +144,17 @@ namespace Echo
             {
                 //create command and assign the query and connection from the constructor
                 MySqlCommand cmd = new MySqlCommand(query, connection);
-                
+
                 //Execute command
-                cmd.ExecuteNonQuery();
+                try
+                {
+                    cmd.ExecuteNonQuery();
+                }
+                catch (MySqlException ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
+                
 
                 //close connection
                 this.CloseConnection();

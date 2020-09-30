@@ -45,7 +45,7 @@ namespace Echo
             TimerforUIupdate();
             TimerforStatusResetAndSMS();
             TimerforNetChecking();
-            TimerforAppLoading();
+            
 
             _nodes = new ObservableCollection<Entity>();
             _nodeslist = new List<Entity>();
@@ -261,13 +261,15 @@ namespace Echo
         {
             AppLoadingTimer.Interval = PingSensePeriodForSMS * 60 * 1000;
             AppLoadingTimer.AutoReset = true;
-            AppLoadingTimer.Elapsed += AppLoadingTimerTimer_Tick;            
+            AppLoadingTimer.Elapsed += AppLoadingTimerTimer_Tick;
+            AppLoadingTimer.Start();
         }
 
         private void AppLoadingTimerTimer_Tick(object sender, System.Timers.ElapsedEventArgs e)
         {
             AppLoadedFlag = false;
             AppLoadingTimer.Stop();
+            LogViewer = "App Loaded flag disabled";
         }
 
 
@@ -287,13 +289,14 @@ namespace Echo
 
                         if (count == 0)
                         {
-                            en.DownTime = DateTime.Now;
-                            //UPNodesList.Add(en);
+                            //en.DownTime = DateTime.Now;
+                            //DownNodesList.Add(en);
                             if (!PingSenseFlag)
                             {
                                 timeCounter = SMSInterval - PingSensePeriodForSMS - 1;
                                 PingSenseFlag = true;
                                 NextSMSTime = DateTime.Now.AddMinutes(PingSensePeriodForSMS).ToLongTimeString();
+                                LogViewer = "Ping sense flag enabled";
                             }
                         }
                         else if (count > 1)
@@ -312,7 +315,7 @@ namespace Echo
 
                         if (count == 1)
                         {
-                            en.UpTime = DateTime.Now;
+                            //en.UpTime = DateTime.Now;
                             UPNodesList.Add(en);
                             if (!PingSenseFlag)
                             {
@@ -356,6 +359,60 @@ namespace Echo
             }
 
             return count;
+        }
+
+        private async void InserDB()
+        {
+            foreach(var item in UPNodesList)
+            {
+                int count = -1;
+                count = await SearchinDBDownList(item);
+
+                if (count == 1)
+                {
+                    await InserUpNodesDBAsync(item);
+                }
+            }
+            UPNodesList.Clear();
+
+            foreach(var item in DownNodesList)
+            {
+                int count = -1;
+                count = await SearchinDBDownList(item);
+
+                if(count == 0)
+                {
+                    await InserDownNodesDBAsync(item);
+                }
+            }
+            DownNodesList.Clear();
+        }
+
+
+        public Task InserUpNodesDBAsync(Entity en)
+        {
+            return Task.Run(() => DBInsertion4UpNodes(en));
+        }
+
+        public Task InserDownNodesDBAsync(Entity en)
+        {
+            return Task.Run(() => DBInsertion4DownNodes(en));
+        }
+
+        private void DBInsertion4UpNodes(Entity en)
+        {
+            lock (db)
+            {
+                //db.InsertDownNodes(en.IpAddress, en.Name, en.Area, en.DownTime.ToString());
+            }
+        }
+
+        private void DBInsertion4DownNodes(Entity en)
+        {
+            lock (db)
+            {
+                db.InsertDownNodes(en.IpAddress, en.Name, en.Area, en.DownTime);
+            }
         }
 
         int DCount = 0, UCount = 0;
@@ -410,6 +467,7 @@ namespace Echo
             {
                 foreach (var item in UPNodesList)
                 {
+                    item.UpTime = DateTime.Now;
                     item.DownTime = null;
                     //UPNodesList4DB.Add(item);///////////////queue
                     if (item.Action_Type == NodeType.SMSENABLED.ToString())
@@ -536,6 +594,7 @@ namespace Echo
         private void StatusResetAndSMSTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
             timeCounter++;
+            LogViewer = "timeCounter " + timeCounter.ToString();
             if (timeCounter == SMSInterval - PingSensePeriodForSMS) //reset before sms
             {
                 ResetStatus();
@@ -614,6 +673,7 @@ namespace Echo
             }
         }
 
+
         private void SMSFunction()
         {
             int downnodescount = NodesList.Where(s => (s.Status == "Down" || s.Status == "Unknown")).ToList<Entity>().Count;
@@ -623,6 +683,8 @@ namespace Echo
                 String SMSContentString_UpNodes = "";
                 SMSContentString_downNodes = BuildSMSContent_DownNodes();
                 SMSContentString_UpNodes = BuildSMSContent_UpNodes();
+
+                InserDB();
                 SMSTrigger(SMSContentString_downNodes, SMSContentString_UpNodes);
 
             }
@@ -912,7 +974,7 @@ namespace Echo
 
                         Write_logFile("Sent SMS today, total number of SMS: " + NumberofDestination.ToString() + "."); ///////////////////////////////////////////////////////////////
 
-                        UPNodesList.Clear();
+                        //UPNodesList.Clear();
                         DCount = 0;
                         UCount = 0;
                         PingSenseFlag = false;
@@ -1243,7 +1305,7 @@ namespace Echo
                 }
                 ExcelLoaded = true;
                 AppLoadedFlag = true;
-                AppLoadingTimer.Start();
+                TimerforAppLoading();                
             }
             catch (Exception ex)
             {
