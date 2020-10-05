@@ -301,7 +301,7 @@ namespace Echo
                         }
                         else if (count > 1)
                         {
-                            MessageBox.Show("Down Table in MySQL has duplicate data", Title, MessageBoxButton.OK, MessageBoxImage.Error);
+                            MessageBox.Show("Down Table in MySQL has duplicate data, remove one manually.", Title, MessageBoxButton.OK, MessageBoxImage.Error);
                         }
                     }                    
                 }
@@ -326,7 +326,7 @@ namespace Echo
                         }
                         else if(count > 1)
                         {
-                            MessageBox.Show("Down Table in MySQL has duplicate data", Title, MessageBoxButton.OK, MessageBoxImage.Error);
+                            MessageBox.Show("Down Table in MySQL has duplicate data, remove one manually.", Title, MessageBoxButton.OK, MessageBoxImage.Error);
                         }
                     }
                 }
@@ -361,7 +361,7 @@ namespace Echo
             return count;
         }
 
-        private async void InserDB()
+        private async void InsertDB()
         {
             foreach(var item in UPNodesList)
             {
@@ -370,7 +370,7 @@ namespace Echo
 
                 if (count == 1)
                 {
-                    await InserUpNodesDBAsync(item);
+                    await InsertUpNodesDBAsync(item);
                 }
             }
             UPNodesList.Clear();
@@ -382,19 +382,19 @@ namespace Echo
 
                 if(count == 0)
                 {
-                    await InserDownNodesDBAsync(item);
+                    await InsertDownNodesDBAsync(item);
                 }
             }
             DownNodesList.Clear();
         }
 
 
-        public Task InserUpNodesDBAsync(Entity en)
+        public Task InsertUpNodesDBAsync(Entity en)
         {
             return Task.Run(() => DBInsertion4UpNodes(en));
         }
 
-        public Task InserDownNodesDBAsync(Entity en)
+        public Task InsertDownNodesDBAsync(Entity en)
         {
             return Task.Run(() => DBInsertion4DownNodes(en));
         }
@@ -684,7 +684,7 @@ namespace Echo
                 SMSContentString_downNodes = BuildSMSContent_DownNodes();
                 SMSContentString_UpNodes = BuildSMSContent_UpNodes();
 
-                InserDB();
+                InsertDB();
                 SMSTrigger(SMSContentString_downNodes, SMSContentString_UpNodes);
 
             }
