@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Windows.Forms;
+using System.Windows;
 using System.Diagnostics;
 using System.IO;
 //Add MySql Library
@@ -16,6 +16,8 @@ namespace Echo
         private string database;
         private string uid;
         private string password;
+
+        public String Title = "";
 
         //Constructor
         public DBConnect()
@@ -54,11 +56,13 @@ namespace Echo
                 switch (ex.Number)
                 {
                     case 0:
-                        MessageBox.Show("Cannot connect to server.  Contact administrator");
+                        MessageBox.Show("Cannot connect to server.  Contact administrator", Title, MessageBoxButton.OK, MessageBoxImage.Error);
                         break;
-
                     case 1045:
-                        MessageBox.Show("Invalid username/password, please try again");
+                        MessageBox.Show("Invalid username/password, please try again", Title, MessageBoxButton.OK, MessageBoxImage.Error);
+                        break;
+                    default:
+                        MessageBox.Show(ex.Message, Title, MessageBoxButton.OK, MessageBoxImage.Error);
                         break;
                 }
                 return false;
@@ -75,7 +79,7 @@ namespace Echo
             }
             catch (MySqlException ex)
             {
-                MessageBox.Show(ex.Message);
+                MessageBox.Show(ex.Message, Title, MessageBoxButton.OK, MessageBoxImage.Error);
                 return false;
             }
         }
@@ -106,8 +110,9 @@ namespace Echo
             }
         }
 
-        public void InsertDownNodes(string IPaddress, string Name, string Area, DateTime? DownTime)
+        public int InsertDownNodes(string IPaddress, string Name, string Area, DateTime? DownTime)
         {
+            int count = -1;
             string dt = "";
             dt = DownTime.Value.ToString("yyyy-MM-dd HH:mm:ss");
 
@@ -122,7 +127,7 @@ namespace Echo
                 //Execute command
                 try
                 {
-                    cmd.ExecuteNonQuery();
+                    count = cmd.ExecuteNonQuery();
                 }
                 catch (MySqlException ex)
                 {
@@ -132,6 +137,37 @@ namespace Echo
                 //close connection
                 this.CloseConnection();
             }
+            return count;
+        }
+
+        public int InsertUpNodes(string IPaddress, string Name, string Area, DateTime? DownTime)
+        {
+            int count = -1;
+            string dt = "";
+            dt = DownTime.Value.ToString("yyyy-MM-dd HH:mm:ss");
+
+            string query = "INSERT INTO CurrentDownNodes (IPAddress, Name, Area, DownTime) VALUES('" + IPaddress + "', '" + Name + "', '" + Area + "', '" + dt + "')";
+
+            //open connection
+            if (this.OpenConnection() == true)
+            {
+                //create command and assign the query and connection from the constructor
+                MySqlCommand cmd = new MySqlCommand(query, connection);
+
+                //Execute command
+                try
+                {
+                    count = cmd.ExecuteNonQuery();
+                }
+                catch (MySqlException ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
+
+                //close connection
+                this.CloseConnection();
+            }
+            return count;
         }
 
         //Insert statement
@@ -198,6 +234,47 @@ namespace Echo
         }
 
         //Select statement
+        public string[] SelectfromDownTable(string IPaddress)
+        {
+            string query = "select * from CurrentDownNodes where IPAddress = '" + IPaddress + "'";
+
+            //Create a list to store the result
+            string[] data = new string[4];
+
+            //Open connection
+            if (this.OpenConnection() == true)
+            {
+                //Create Command
+                MySqlCommand cmd = new MySqlCommand(query, connection);
+                //Create a data reader and Execute the command
+                MySqlDataReader dataReader = cmd.ExecuteReader();
+                
+                //Read the data and store them in the list
+                while (dataReader.Read())
+                {
+                    data[0] = dataReader["IPAddress"].ToString();
+                    data[1] = dataReader["Name"].ToString();
+                    data[2] = dataReader["Area"].ToString();
+                    data[3] = dataReader["DownTime"].ToString();
+
+                }
+
+                //close Data Reader
+                dataReader.Close();
+
+                //close Connection
+                this.CloseConnection();
+
+                //return list to be displayed
+                return data;
+            }
+            else
+            {
+                return data;
+            }
+        }
+
+        //Select statement
         public List<string>[] Select()
         {
             string query = "SELECT * FROM tableinfo";
@@ -215,7 +292,7 @@ namespace Echo
                 MySqlCommand cmd = new MySqlCommand(query, connection);
                 //Create a data reader and Execute the command
                 MySqlDataReader dataReader = cmd.ExecuteReader();
-                
+
                 //Read the data and store them in the list
                 while (dataReader.Read())
                 {

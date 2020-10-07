@@ -56,7 +56,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestCertificateThumbprint>8E483D7041AFBBCA4D075DA1111A7327F34CF3EC</ManifestCertificateThumbprint>
+    <ManifestCertificateThumbprint>ABA358E3EB8BCF0919AA34A5C98D06160B75E03E</ManifestCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup>
     <ManifestKeyFile>Echo_1_TemporaryKey.pfx</ManifestKeyFile>

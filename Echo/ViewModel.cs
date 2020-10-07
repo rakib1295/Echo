@@ -39,14 +39,13 @@ namespace Echo
         DBConnect db = new DBConnect();
 
         public ViewModel()
-        {
+        {            
             this.PropertyChanged += ViewModel_PropertyChanged;
-            
             TimerforUIupdate();
             TimerforStatusResetAndSMS();
             TimerforNetChecking();
             
-
+            
             _nodes = new ObservableCollection<Entity>();
             _nodeslist = new List<Entity>();
             _phonenumberlist = new List<int>();
@@ -270,6 +269,7 @@ namespace Echo
             AppLoadedFlag = false;
             AppLoadingTimer.Stop();
             LogViewer = "App Loaded flag disabled";
+            db.Title = Title;
         }
 
 
@@ -363,56 +363,108 @@ namespace Echo
 
         private async void InsertDB()
         {
-            foreach(var item in UPNodesList)
+            int inserted_downtable = 0, inserted_uptable = 0;
+
+            foreach (var item in UPNodesList)
             {
-                int count = -1;
+                int count = -1, row = 0;
                 count = await SearchinDBDownList(item);
 
                 if (count == 1)
                 {
-                    await InsertUpNodesDBAsync(item);
+                    row = await InsertUpNodesDBAsync(item);
+                    if(row == -1)
+                    {
+                        inserted_uptable = -1;
+                        break;
+                    }
+                    else
+                    {
+                        inserted_uptable++;
+                    }
+                }
+                else if(count == -1)
+                {
+                    inserted_uptable = -1;
+                    break;
                 }
             }
-            UPNodesList.Clear();
 
-            foreach(var item in DownNodesList)
+            if(inserted_uptable != -1)
             {
-                int count = -1;
+                LogViewer = "Number of rows inserted on UP node table in DB: " + inserted_uptable;
+                Write_logFile(LogViewer);
+                UPNodesList.Clear();
+            }
+
+            foreach (var item in DownNodesList)
+            {
+                int count = -1, row = 0;
                 count = await SearchinDBDownList(item);
 
-                if(count == 0)
+                if (count == 0)
                 {
-                    await InsertDownNodesDBAsync(item);
+                    row = await InsertDownNodesDBAsync(item);
+                    if (row == -1)
+                    {
+                        inserted_downtable = -1;
+                        break;
+                    }
+                    else
+                    {
+                        inserted_downtable++;
+                    }
+                }
+                else if (count == -1)
+                {
+                    inserted_downtable = -1;
+                    break;
                 }
             }
-            DownNodesList.Clear();
+
+            if (inserted_downtable != -1)
+            {
+                LogViewer = "Number of rows inserted on current down node table in DB: " + inserted_downtable;
+                Write_logFile(LogViewer);
+                DownNodesList.Clear();
+            }
         }
 
 
-        public Task InsertUpNodesDBAsync(Entity en)
+        public Task<int> InsertUpNodesDBAsync(Entity en)
         {
             return Task.Run(() => DBInsertion4UpNodes(en));
         }
 
-        public Task InsertDownNodesDBAsync(Entity en)
+        public Task<int> InsertDownNodesDBAsync(Entity en)
         {
             return Task.Run(() => DBInsertion4DownNodes(en));
         }
 
-        private void DBInsertion4UpNodes(Entity en)
+        private int DBInsertion4UpNodes(Entity en)
         {
+            int count = -1;
             lock (db)
             {
-                //db.InsertDownNodes(en.IpAddress, en.Name, en.Area, en.DownTime.ToString());
+                string[] data = new string[4];
+                data = db.SelectfromDownTable(en.IpAddress);
+                if(data[0] != null && data[1] != null && data[2] != null && data[3] != null)
+                {
+                    db.InsertUpNodes(data[0], data[1], data[2], data[3]);
+                }
+
             }
+            return count;
         }
 
-        private void DBInsertion4DownNodes(Entity en)
+        private int DBInsertion4DownNodes(Entity en)
         {
+            int count = -1;
             lock (db)
             {
-                db.InsertDownNodes(en.IpAddress, en.Name, en.Area, en.DownTime);
+                count = db.InsertDownNodes(en.IpAddress, en.Name, en.Area, en.DownTime);
             }
+            return count;
         }
 
         int DCount = 0, UCount = 0;
