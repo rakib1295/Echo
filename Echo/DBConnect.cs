@@ -110,13 +110,12 @@ namespace Echo
             }
         }
 
-        public int InsertDownNodes(string IPaddress, string Name, string Area, DateTime? DownTime)
+        public int InsertDownNodes(string IPaddress, string Name, string Area, string DownTime)
         {
             int count = -1;
-            string dt = "";
-            dt = DownTime.Value.ToString("yyyy-MM-dd HH:mm:ss");
 
-            string query = "INSERT INTO CurrentDownNodes (IPAddress, Name, Area, DownTime) VALUES('"+ IPaddress + "', '" + Name + "', '" + Area + "', '" + dt + "')";
+            string query = "INSERT INTO CurrentDownNodes (IPAddress, Name, Area, DownTime) VALUES('"+ IPaddress + "', '" + 
+                Name + "', '" + Area + "', '" + DownTime + "')";
 
             //open connection
             if (this.OpenConnection() == true)
@@ -140,13 +139,14 @@ namespace Echo
             return count;
         }
 
-        public int InsertUpNodes(string IPaddress, string Name, string Area, DateTime? DownTime)
+        public int InsertUpNodes(string IPaddress, string Name, string Area, string downtime, string uptime,
+                        string DownDuration_ddhhmm, string Totalhour, string min, string monthCycle, string dateCycle)
         {
             int count = -1;
-            string dt = "";
-            dt = DownTime.Value.ToString("yyyy-MM-dd HH:mm:ss");
-
-            string query = "INSERT INTO CurrentDownNodes (IPAddress, Name, Area, DownTime) VALUES('" + IPaddress + "', '" + Name + "', '" + Area + "', '" + dt + "')";
+            string query = "INSERT INTO Nodes_Status " +
+                "(IPAddress, Name, Area, DownTime, UpTime, DownDuration_ddhhmm, Down_TotalHour, Down_Min, Month_Cycle, Date_Cycle) " +
+                "VALUES('" + IPaddress + "', '" + Name + "','" + Area + "', '" + downtime + "','" + uptime + "', '" 
+                + DownDuration_ddhhmm + "','" + Totalhour + "', '" + min + "','" + monthCycle + "', '" + dateCycle + "')";
 
             //open connection
             if (this.OpenConnection() == true)
@@ -221,25 +221,25 @@ namespace Echo
         }
 
         //Delete statement
-        public void Delete()
-        {
-            string query = "DELETE FROM tableinfo WHERE name='John Smith'";
+        //public void Delete()
+        //{
+        //    string query = "DELETE FROM tableinfo WHERE name='John Smith'";
 
-            if (this.OpenConnection() == true)
-            {
-                MySqlCommand cmd = new MySqlCommand(query, connection);
-                cmd.ExecuteNonQuery();
-                this.CloseConnection();
-            }
-        }
+        //    if (this.OpenConnection() == true)
+        //    {
+        //        MySqlCommand cmd = new MySqlCommand(query, connection);
+        //        cmd.ExecuteNonQuery();
+        //        this.CloseConnection();
+        //    }
+        //}
 
         //Select statement
-        public string[] SelectfromDownTable(string IPaddress)
+        public string SelectDownTimefromDownTable(string IPaddress)
         {
-            string query = "select * from CurrentDownNodes where IPAddress = '" + IPaddress + "'";
+            string query = "select DownTime from CurrentDownNodes where IPAddress = '" + IPaddress + "'";
 
             //Create a list to store the result
-            string[] data = new string[4];
+            string data = "";
 
             //Open connection
             if (this.OpenConnection() == true)
@@ -252,11 +252,7 @@ namespace Echo
                 //Read the data and store them in the list
                 while (dataReader.Read())
                 {
-                    data[0] = dataReader["IPAddress"].ToString();
-                    data[1] = dataReader["Name"].ToString();
-                    data[2] = dataReader["Area"].ToString();
-                    data[3] = dataReader["DownTime"].ToString();
-
+                    data = dataReader["DownTime"].ToString();
                 }
 
                 //close Data Reader
@@ -271,6 +267,18 @@ namespace Echo
             else
             {
                 return data;
+            }
+        }
+
+        public void DeletefromDownTable(string IPaddress)
+        {
+            string query = "DELETE FROM CurrentDownNodes where IPAddress = '" + IPaddress + "'";
+
+            if (this.OpenConnection() == true)
+            {
+                MySqlCommand cmd = new MySqlCommand(query, connection);
+                cmd.ExecuteNonQuery();
+                this.CloseConnection();
             }
         }
 

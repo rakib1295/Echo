@@ -93,7 +93,7 @@ namespace Echo
         }
 
 
-        public String IpAddress { get; set; }
+        public String IPAddress { get; set; }
 
         public String Name { get; set; }
 
@@ -113,9 +113,9 @@ namespace Echo
         //}
 
 
-        public DateTime? UpTime = new DateTime();
+        public DateTime? UpTime = null;
 
-        public DateTime? DownTime = new DateTime();
+        public DateTime? DownTime = null;
 
         public String LastPingStatus { get; set; } = "Unknown";
 

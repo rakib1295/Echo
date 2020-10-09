@@ -39,7 +39,7 @@ namespace Echo
         DBConnect db = new DBConnect();
 
         public ViewModel()
-        {            
+        {
             this.PropertyChanged += ViewModel_PropertyChanged;
             TimerforUIupdate();
             TimerforStatusResetAndSMS();
@@ -289,6 +289,7 @@ namespace Echo
 
                         if (count == 0)
                         {
+                            LogViewer = en.Area + " is down.";
                             //en.DownTime = DateTime.Now;
                             //DownNodesList.Add(en);
                             if (!PingSenseFlag)
@@ -315,6 +316,8 @@ namespace Echo
 
                         if (count == 1)
                         {
+                            LogViewer = en.Area + " is up.";
+
                             //en.UpTime = DateTime.Now;
                             UPNodesList.Add(en);
                             if (!PingSenseFlag)
@@ -322,6 +325,7 @@ namespace Echo
                                 timeCounter = SMSInterval - PingSensePeriodForSMS - 1;
                                 PingSenseFlag = true;
                                 NextSMSTime = DateTime.Now.AddMinutes(PingSensePeriodForSMS).ToLongTimeString();
+                                LogViewer = "Ping sense flag enabled";
                             }
                         }
                         else if(count > 1)
@@ -355,7 +359,7 @@ namespace Echo
 
             lock(db)
             {
-                count = db.SearchinCurrentDownNodes(en.IpAddress);
+                count = db.SearchinCurrentDownNodes(en.IPAddress);
             }
 
             return count;
@@ -446,13 +450,29 @@ namespace Echo
             int count = -1;
             lock (db)
             {
-                string[] data = new string[4];
-                data = db.SelectfromDownTable(en.IpAddress);
-                if(data[0] != null && data[1] != null && data[2] != null && data[3] != null)
-                {
-                    db.InsertUpNodes(data[0], data[1], data[2], data[3]);
-                }
+                string downtime = "";
+                downtime = db.SelectDownTimefromDownTable(en.IPAddress);
 
+
+                if (downtime != "")
+                {
+                    DateTime dt = DateTime.Parse(downtime);
+                    TimeSpan ts = en.UpTime.Value.Subtract(dt);
+
+                    string duration_ddhhmm = ts.Days.ToString() + ":" + ts.Hours.ToString("00") + ":" + ts.Minutes.ToString("00");
+                    int Totalhour = Convert.ToInt32(ts.TotalHours);
+                    int min = ts.Minutes;
+                    
+                    string monthCycle = en.UpTime.Value.Year.ToString() + en.UpTime.Value.Month.ToString();
+                    string dateCycle = en.UpTime.Value.Day.ToString();
+                    count = db.InsertUpNodes(en.IPAddress, en.Name, en.Area, dt.ToString("yyyy-MM-dd HH:mm:ss"), en.UpTime.Value.ToString("yyyy-MM-dd HH:mm:ss"), 
+                        duration_ddhhmm, Totalhour.ToString(), min.ToString(), monthCycle, dateCycle);
+
+                    if(count == 1)
+                    {
+                        db.DeletefromDownTable(en.IPAddress);
+                    }
+                }
             }
             return count;
         }
@@ -462,7 +482,7 @@ namespace Echo
             int count = -1;
             lock (db)
             {
-                count = db.InsertDownNodes(en.IpAddress, en.Name, en.Area, en.DownTime);
+                count = db.InsertDownNodes(en.IPAddress, en.Name, en.Area, en.DownTime.Value.ToString("yyyy-MM-dd HH:mm:ss"));
             }
             return count;
         }
@@ -481,7 +501,10 @@ namespace Echo
             {
                 foreach (var item in DownNodesList)
                 {
-                    item.DownTime = DateTime.Now;
+                    if(item.DownTime == null)
+                    {
+                        item.DownTime = DateTime.Now;
+                    }
                     item.UpTime = null;
 
                     //DBTask
@@ -519,9 +542,11 @@ namespace Echo
             {
                 foreach (var item in UPNodesList)
                 {
-                    item.UpTime = DateTime.Now;
+                    if(item.UpTime == null)
+                    {
+                        item.UpTime = DateTime.Now;
+                    }
                     item.DownTime = null;
-                    //UPNodesList4DB.Add(item);///////////////queue
                     if (item.Action_Type == NodeType.SMSENABLED.ToString())
                     {
                         SMSContentString = item.Area + ", " + SMSContentString;
@@ -736,7 +761,7 @@ namespace Echo
                 SMSContentString_downNodes = BuildSMSContent_DownNodes();
                 SMSContentString_UpNodes = BuildSMSContent_UpNodes();
 
-                InsertDB();
+                Task.Run(() => InsertDB());
                 SMSTrigger(SMSContentString_downNodes, SMSContentString_UpNodes);
 
             }
@@ -790,11 +815,11 @@ namespace Echo
 
                 if (DCount > 1)
                 {
-                    SMSContentString = SMSContentString_DownNodes + " links are down.\n";
+                    SMSContentString = SMSContentString + SMSContentString_DownNodes + " links are down.\n";
                 }
                 else if (DCount == 1)
                 {
-                    SMSContentString = SMSContentString_DownNodes + " link is down.\n";
+                    SMSContentString = SMSContentString + SMSContentString_DownNodes + " link is down.\n";
                 }
             }
             else
@@ -1026,7 +1051,6 @@ namespace Echo
 
                         Write_logFile("Sent SMS today, total number of SMS: " + NumberofDestination.ToString() + "."); ///////////////////////////////////////////////////////////////
 
-                        //UPNodesList.Clear();
                         DCount = 0;
                         UCount = 0;
                         PingSenseFlag = false;
@@ -1301,7 +1325,7 @@ namespace Echo
 
 
                     string str = xlWorkSheet1.Cells[i, 1].Value2.ToString();
-                    _nd.IpAddress = str;
+                    _nd.IPAddress = str;
 
                     _nd.Name = xlWorkSheet1.Cells[i, 2].Value2.ToString();
 
@@ -1410,7 +1434,7 @@ namespace Echo
                     {
                         if (NetworkInterface.GetIsNetworkAvailable())
                         {
-                            PingReply reply = await pingSender.SendPingAsync(NodesList[index].IpAddress);
+                            PingReply reply = await pingSender.SendPingAsync(NodesList[index].IPAddress);
 
                             if (RunPingFunctionality)
                             {
@@ -1441,25 +1465,25 @@ namespace Echo
                                     NodesList[index].MaxRoundTripTime = reply.RoundtripTime;
                                 }
 
-                                if (NodesList[index].PercentageLoss >= 0 && NodesList[index].PercentageLoss <= 20)
+                                if (NodesList[index].PercentageLoss >= 0 && NodesList[index].PercentageLoss <= 20 && NodesList[index].PingCount >= 4)
                                 {
                                     NodesList[index].Color_Type2 = Colors.Green;
                                     if(NodesList[index].Status != "Up")
                                         NodesList[index].Status = "Up";
                                 }
-                                else if (NodesList[index].PercentageLoss > 20 && NodesList[index].PercentageLoss <= 50)
+                                else if (NodesList[index].PercentageLoss > 20 && NodesList[index].PercentageLoss <= 50 && NodesList[index].PingCount >= 4)
                                 {
                                     NodesList[index].Color_Type2 = Colors.Blue;
                                     if (NodesList[index].Status != "Moderate")
                                         NodesList[index].Status = "Moderate";
                                 }
-                                else if (NodesList[index].PercentageLoss > 50 && NodesList[index].PercentageLoss < Entity.UpDownIndicator)
+                                else if (NodesList[index].PercentageLoss > 50 && NodesList[index].PercentageLoss < Entity.UpDownIndicator && NodesList[index].PingCount >= 4)
                                 {
                                     NodesList[index].Color_Type2 = Colors.DarkOrange;
                                     if (NodesList[index].Status != "Poor")
                                         NodesList[index].Status = "Poor";
                                 }
-                                else if (NodesList[index].PercentageLoss >= Entity.UpDownIndicator)
+                                else if (NodesList[index].PercentageLoss >= Entity.UpDownIndicator && NodesList[index].PingCount >= 4)
                                 {
                                     NodesList[index].Color_Type2 = Colors.Red;
                                     if (NodesList[index].Status != "Down")

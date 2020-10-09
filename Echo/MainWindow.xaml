@@ -175,8 +175,10 @@
                             <GridView x:Name="grdNames">
                                 <GridViewColumn Header="#" x:Name="c1" Width="35"  DisplayMemberBinding="{Binding Serial}"/>
                                 <GridViewColumn Header="Name" x:Name="c2" Width="auto" DisplayMemberBinding="{Binding Name}"/>
-                                <GridViewColumn x:Name="c3" Header="IP"  Width="auto" DisplayMemberBinding="{Binding IpAddress}"/>
+                                <GridViewColumn x:Name="c3" Header="IP"  Width="auto" DisplayMemberBinding="{Binding IPAddress}"/>
                                 <GridViewColumn Header="Area" x:Name="c4" Width="auto"  DisplayMemberBinding="{Binding Area}"/>
+                                <!--<GridViewColumn Header="Down Time" x:Name="c16" Width="auto"  DisplayMemberBinding="{Binding DownTime}"/>-->
+                                <!--<GridViewColumn Header="Up Time" x:Name="c17" Width="auto"  DisplayMemberBinding="{Binding UpTime}"/>-->
 
                                 <GridViewColumn Header="Status" Width="auto" x:Name="c13"/>
                                 <GridViewColumn Header="Pkt Sent" x:Name="c14" Width="auto"  DisplayMemberBinding="{Binding PingCount}"/>

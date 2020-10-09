@@ -127,7 +127,7 @@ namespace Echo
             {
                 _itm = (Entity)IPListView.SelectedItem;
                 _NodeName.Text = _itm.Name;
-                _NodeIP.Text = _itm.IpAddress;
+                _NodeIP.Text = _itm.IPAddress;
                 _NodeStatus.Text = _itm.Status;
 
                 if (_itm.Action_Type == NodeType.SMSENABLED.ToString())
@@ -508,7 +508,7 @@ namespace Echo
                     case "Name":
                         return ((item as Entity).Name.IndexOf(Search_Textbox.Text, StringComparison.OrdinalIgnoreCase) >= 0);
                     case "IP":
-                        return ((item as Entity).IpAddress.IndexOf(Search_Textbox.Text, StringComparison.OrdinalIgnoreCase) >= 0);
+                        return ((item as Entity).IPAddress.IndexOf(Search_Textbox.Text, StringComparison.OrdinalIgnoreCase) >= 0);
                     case "Area":
                         return ((item as Entity).Area.IndexOf(Search_Textbox.Text, StringComparison.OrdinalIgnoreCase) >= 0);
                     case "Type":
