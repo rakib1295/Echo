@@ -989,7 +989,7 @@ namespace Echo
             }
             else
             {
-                LogViewer = "Error: All links are down, may be something is wrong. Please check internet connection of this Computer.";
+                LogViewer = "Error: All PoPs are down, may be something is wrong. Please check internet connection of this Computer.";
                 Write_logFile(LogViewer);
                 timeCounter = SMSInterval / 2;
                 NextSMSTime = DateTime.Now.AddMinutes(SMSInterval - timeCounter).ToLongTimeString();
