@@ -12,13 +12,6 @@ namespace Echo
 {
     class Entity : INotifyPropertyChanged
     {
-        //public Entity()
-        //{
-        //    //this.PropertyChanged += Router_PropertyChanged;
-        //}
-
-        public static int UpDownIndicator;
-
         public int SuccessPingCount
         { get; set; }
 
@@ -100,19 +93,6 @@ namespace Echo
 
         public String Area { get; set; }
 
-
-        //public String Zone
-        //{
-        //    get { return zone; }
-        //    set
-        //    {
-        //        zone = value;
-        //        // Call OnPropertyChanged whenever the property is updated
-        //        //OnPropertyChanged("Zone");
-        //    }
-        //}
-
-
         public DateTime? UpTime = null;
 
         public DateTime? DownTime = null;
@@ -142,12 +122,6 @@ namespace Echo
             }
         }
     }
-
-    //class Zone
-    //{
-    //    public String ZoneName = "";
-    //    public int ZoneCount = 0;
-    //}
 
     enum NodeType
     {

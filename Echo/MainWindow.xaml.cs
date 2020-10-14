@@ -216,6 +216,7 @@ namespace Echo
             {
                 VM.DisposeTimers();
                 SaveSettings();
+                SaveDBSettings();
             }
 
             //IconInstance.Dispose();
@@ -234,6 +235,17 @@ namespace Echo
             Properties.Settings.Default.MsgFooter = MsgFooter_txtbox.Text;
             Properties.Settings.Default.SMSIfAllUp = (bool)SMSIfAllUp_Checkbox.IsChecked;
             Properties.Settings.Default.AllLinksUp_txt = AllLinksUp_txtbox.Text;
+            Properties.Settings.Default.SMS_Server = SMS_Server_txtbox.Text;
+
+            Properties.Settings.Default.Save();
+        }
+
+        private void SaveDBSettings()
+        {
+            Properties.Settings.Default.DB_UID = DB_ID_txtbox.Text;
+            Properties.Settings.Default.DB_PW = DB_psw.Password;
+            Properties.Settings.Default.DB_Host = DB_Host_Name_txtbox.Text;
+            Properties.Settings.Default.DB_Name = DB_Name_txtbox.Text;
 
             Properties.Settings.Default.Save();
         }
@@ -251,6 +263,12 @@ namespace Echo
             MsgFooter_txtbox.Text = Properties.Settings.Default.MsgFooter;
             SMSIfAllUp_Checkbox.IsChecked = Properties.Settings.Default.SMSIfAllUp;
             AllLinksUp_txtbox.Text = Properties.Settings.Default.AllLinksUp_txt;
+            SMS_Server_txtbox.Text = Properties.Settings.Default.SMS_Server;
+
+            DB_ID_txtbox.Text = Properties.Settings.Default.DB_UID;
+            DB_psw.Password = Properties.Settings.Default.DB_PW;
+            DB_Host_Name_txtbox.Text = Properties.Settings.Default.DB_Host;
+            DB_Name_txtbox.Text = Properties.Settings.Default.DB_Name;
         }
 
 
@@ -259,7 +277,7 @@ namespace Echo
             if (MessageBox.Show("Do you want to reset settings data to default value?", VM.Title, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             {
                 SMS_Checkbox.IsChecked = true;
-                Properties.Settings.Default.ParcentLoss = "90";
+                ParcentLoss_txtbox.Text = "90";
                 SMSInterval_txtbox.Text = "120";
                 RefreshInterval_txtbox.Text = "10";
                 PingSenseTime_txtbox.Text = "5";
@@ -750,6 +768,20 @@ namespace Echo
             timerforPopup.Stop();
         }
 
+        private void ClearLog_MouseEnter_1(object sender, MouseEventArgs e)
+        {
+            Popup_Common.IsOpen = true;
+            Popup_Common_textblock.Text = "Click here to clear below logs.";
+            timerforPopup.Interval = TimeSpan.FromSeconds(5);
+            timerforPopup.Start();
+        }
+
+        private void ClearLog_MouseLeave_1(object sender, MouseEventArgs e)
+        {
+            Popup_Common.IsOpen = false;
+            timerforPopup.Stop();
+        }
+
         DispatcherTimer timerforPopup = new DispatcherTimer();
 
         private void timer_TickForPopup(object sender, EventArgs e)
@@ -783,7 +815,7 @@ namespace Echo
         }        
 
 
-        private  void LoadExcel_btn_Click(object sender, RoutedEventArgs e)
+        private async void LoadExcel_btn_Click(object sender, RoutedEventArgs e)
         {
             if (VM.Destination_Excel_url != "")
             {
@@ -804,9 +836,19 @@ namespace Echo
                         }
                         else
                         {
-                            VM.ExcelLoaded = false;
-                            Show_LogTextblock("Trying to load excel file ... .. .");
-                            VM.LoadingThread();
+                            bool stat = false;
+                            await Task.Run(()=> stat =  VM.CheckDBConnection());
+
+                            if (stat)
+                            {
+                                VM.ExcelLoaded = false;
+                                Show_LogTextblock("Trying to load excel file ... .. .");
+                                VM.LoadingThread();
+                            }
+                            else
+                            {
+                                MessageBox.Show("Please at first connect with MySQL Database from menu.", VM.Title, MessageBoxButton.OK, MessageBoxImage.Information);
+                            }
                         }
                     }
                 }
@@ -818,9 +860,18 @@ namespace Echo
                     }
                     else
                     {
-                        VM.ExcelLoaded = false;
-                        Show_LogTextblock("Trying to load excel file ... .. .");
-                        VM.LoadingThread();
+                        bool stat = false;
+                        await Task.Run(() => stat = VM.CheckDBConnection());
+                        if(stat)
+                        {
+                            VM.ExcelLoaded = false;
+                            Show_LogTextblock("Trying to load excel file ... .. .");
+                            VM.LoadingThread();
+                        }
+                        else
+                        {
+                            MessageBox.Show("Please at first connect with MySQL Database from menu.", VM.Title, MessageBoxButton.OK, MessageBoxImage.Information);
+                        }
                     }
                 }
             }
@@ -903,9 +954,16 @@ namespace Echo
                 VM.ResetStatus();
             }
         }
+        private void ClearLog_btn_Click_1(object sender, RoutedEventArgs e)
+        {
+            if (MessageBox.Show("Do you want to clear below logs?", VM.Title, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            {
+                log_textblock.Text = "";
+            }
+        }
 
 
-        
+
         private void Send_btn_Click_1(object sender, RoutedEventArgs e)
         {
             if (MessageBox.Show("Do you really want to send SMS manually?", VM.Title, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
@@ -952,6 +1010,11 @@ namespace Echo
         private void Settings_function_Click_1(object sender, RoutedEventArgs e)
         {
             Popup_Settings.IsOpen = true;
+
+        }
+        private void DB_Connect_function_Click_1(object sender, RoutedEventArgs e)
+        {
+            Popup_DB_Connection.IsOpen = true;
 
         }
 
@@ -1056,15 +1119,11 @@ namespace Echo
             VM.SMSActive = true;
             if (user_name != null)
             {
-                user_name.IsEnabled = true;
-                acc_psw.IsEnabled = true;
                 SMSIfAllUp_Checkbox.IsEnabled = true;
                 AllLinksUp_txtbox.IsEnabled = true;
-                Show_LogTextblock("SMS is enabled.");
+                SMSInterval_txtbox.IsEnabled = true;
+                Show_LogTextblock("Repeatitive SMS enabled.");
                 NextSMSAlart_txtblk.Text = "Next SMS will be sent at: " + VM.NextSMSTime;
-                WebReply_textblock.Visibility = Visibility.Visible;
-                if(VM.ExcelLoaded)
-                    Send_btn.IsEnabled = true;
             }
         }
 
@@ -1073,14 +1132,11 @@ namespace Echo
             VM.SMSActive = false;
             if (user_name != null)
             {
-                user_name.IsEnabled = false;
-                acc_psw.IsEnabled = false;
                 SMSIfAllUp_Checkbox.IsEnabled = false;
                 AllLinksUp_txtbox.IsEnabled = false;
-                Show_LogTextblock("SMS is disabled. Only Pinging will continue.");
-                NextSMSAlart_txtblk.Text = "SMS disabled.";
-                Send_btn.IsEnabled = false;
-                WebReply_textblock.Visibility = Visibility.Collapsed;
+                SMSInterval_txtbox.IsEnabled = false;
+                Show_LogTextblock("Repeatitive SMS is disabled. SMS will be sent only when status will be changed.");
+                NextSMSAlart_txtblk.Text = "Repeatitive SMS disabled.";
             }
         }
 
@@ -1088,36 +1144,25 @@ namespace Echo
         {
             return
                 "\n  1. Please at first browse excel file from file menu, if 'Load Excel' button blinks. There should be two sheets in excel file: A) 1st sheet will contain router or switch info. B) 2nd sheet will contain phone number list for sending message." +
-                "\n  2. In first sheet of excel, there will be 4 columns: i)IP ii)Link name iii)Link type iv)Area. First row will be column headers." +
-                "\n  3. In second sheet of excel, there will be phone numbers in first column. Again first row will be column headers. Phone numbers must be in 10 digits (starts with '1' not '0')." +
+                "\n  2. In first sheet of excel, there will be 4 columns: i)IP ii)Link name iii)Link type iv)Area. First row will be for column headers." +
+                "\n  3. In second sheet of excel, there will be phone numbers at first column. Again first row will be for column header. Phone numbers must be in 10 digits (starts with '1' not with '0')." +
                 "\n  4. After browsing the excel file, give username and password for Teletalk account in settings then click the 'Load Excel' button." +
                 "\n  5. If you need to adjust SMS time interval, refresh interval and ping sense period, do it from settings." +
                 "\n  6. You can add message header or footer from settings, but be careful about message size." +
                 "\n  7. You can adjust minimum packet loss value (in percent) from settings, which will indicate the node is down." +
-                "\n  8. SMS will be sent automatically after definite time interval, if you need to send message manually, then click on 'Send SMS' button." +
-                "\n  9. If you need to pause ping, click on 'Pause Ping' button." +
-                "\n  10. Router or switch status will be reset automatically. If you need to reset manually, then click 'Reset' button." +
-                "\n  11. After any change in excel file, click on 'Load Excel' button. But before that you need to pause the ping functionality." +
-                "\n  12. Next SMS time is shown at lower left corner of app." +
-                "\n  13. Each log data will be saved to this directory:- C:\\Users\\Public\\" + VM.Title + " Log" +
-                "\n  14. You can click on column name to sort by ascending or descending." +
-                "\n  15. You can search any data from the list by writing any search entry at search box. At first select from 'Search by' by which you want to search." +
-                "\n  16. Add text in 'All links up' message box in settings, which will be the message if all links are up." +
-                "\n  17. You can disable SMS sytem from settings. It will disable SMS system only, but pinging will still be continuing." +
-                "\n  18. You can stop sending SMS when all nodes are up by unchecking 'Send SMS even all nodes are up' at SMS Settings." +
-                "\n  19. You can stop sending SMS for a particular link temporarily. To do this, double click on a link and disable its SMS.";
-        }
-
-        private void Instructions_MouseEnter_1(object sender, MouseEventArgs e)
-        {
-            _InstructRun1.Text = "Instructions of using this app:";
-            _InstructRun2.Text = Show_Instructions();
-            Popup_Instruct.IsOpen = true;            
-        }
-
-        private void Instructions_MouseLeave_1(object sender, MouseEventArgs e)
-        {
-            Popup_Instruct.IsOpen = false;
+                "\n  8. SMS will be sent automatically after definite time interval if SMS active checkbox is selected. Otherwise it will send SMS when status of any node is changed." +
+                "\n  9. If you need to send message manually, then click on 'Send SMS' button." +
+                "\n  10. If you need to pause ping, click on 'Pause Ping' button." +
+                "\n  11. Router or switch status will be reset automatically. If you need to reset manually, then click 'Reset' button." +
+                "\n  12. After any change in excel file, click on 'Load Excel' button. But before that you need to pause the ping functionality." +
+                "\n  13. Next SMS time is shown at lower left corner of app." +
+                "\n  14. Each log data will be saved to this directory:- C:\\Users\\Public\\" + VM.Title + " Log" +
+                "\n  15. You can click on column name to sort by ascending or descending." +
+                "\n  16. You can search any data from the list by writing any search entry at search box. At first select from 'Search by' by which you want to search." +
+                "\n  17. Add text in 'All links up' message box in settings, which will be the message if all links are up." +
+                "\n  19. You can stop sending SMS when all nodes are up by unchecking 'Send SMS even all nodes are up' at SMS Settings." +
+                "\n  20. You can stop sending SMS for a particular link temporarily. To do this, double click on a link and disable its SMS." +
+                "\n  21. Database Connection should be connected properly. In MySQL database, there should be two tables: a) CurrentDownNodes, b) Nodes_Status. These should have proper fields. Contact administrator to change any field manually.";
         }
 
 
@@ -1148,6 +1193,85 @@ namespace Echo
         {
             VM.AccountStatusText = "Please wait......";
             VM.AccountTestTask();
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            VM.AppLoaded_Event();
+        }
+
+        private void DB_ID_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            VM.DB_UID = DB_ID_txtbox.Text;
+        }
+
+        private void DB_psw_PasswordChanged(object sender, RoutedEventArgs e)
+        {
+            VM.DB_PASSWORD = DB_psw.Password;
+        }
+
+        private void DB_Host_Name_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            VM.DB_Host_Name = DB_Host_Name_txtbox.Text;
+        }
+
+        private void DB_Name_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            VM.DatabaseName = DB_Name_txtbox.Text;
+        }
+
+        private async void DBTest_btn_Click(object sender, RoutedEventArgs e)
+        {
+            bool stat = false;
+            await Task.Run(() => stat = VM.CheckDBConnection());
+
+            if (stat)
+            {
+                DBTest_Txtblk.Text = "DB is Connected :)";
+            }
+            else
+            {
+                DBTest_Txtblk.Text = "DB is not Connected :(";
+            }
+        }
+
+        private async void DB_Settings_OK_btn_Click(object sender, RoutedEventArgs e)
+        {
+            bool stat = false;
+            await Task.Run(() => stat = VM.CheckDBConnection());
+
+            if (stat)
+            {
+                DBTest_Txtblk.Text = "DB is Connected :)";
+                SaveDBSettings();
+                Popup_DB_Connection.IsOpen = false;
+            }
+            else
+            {
+                DBTest_Txtblk.Text = "At first connect to MySQL DB.";                
+            }
+        }
+
+        private void DB_Settings_Cancel_btn_Click(object sender, RoutedEventArgs e)
+        {
+            Popup_DB_Connection.IsOpen = false;
+        }
+
+        private void SMS_Server_txtbox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            VM.SMS_Server = SMS_Server_txtbox.Text;
+        }
+
+        private void Button_Instruct_Click(object sender, RoutedEventArgs e)
+        {
+            Popup_Instruct.IsOpen = false;
+        }
+
+        private void MenuItem_Help_Click(object sender, RoutedEventArgs e)
+        {
+            _InstructRun1.Text = "Instructions of using this app:";
+            _InstructRun2.Text = Show_Instructions();
+            Popup_Instruct.IsOpen = true;
         }
     }
 }

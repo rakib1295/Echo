@@ -18,10 +18,10 @@
       <Value Profile="(Default)">120</Value>
     </Setting>
     <Setting Name="Refresh_Interval" Type="System.String" Scope="User">
-      <Value Profile="(Default)">10</Value>
+      <Value Profile="(Default)">6</Value>
     </Setting>
     <Setting Name="PingSenseTime" Type="System.String" Scope="User">
-      <Value Profile="(Default)">5</Value>
+      <Value Profile="(Default)">4</Value>
     </Setting>
     <Setting Name="MsgHeader" Type="System.String" Scope="User">
       <Value Profile="(Default)">Dear Sir,</Value>
@@ -36,6 +36,21 @@
       <Value Profile="(Default)">NOC
 Moghbazar
 T-0258312345</Value>
+    </Setting>
+    <Setting Name="DB_UID" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="DB_PW" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="DB_Host" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="DB_Name" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="SMS_Server" Type="System.String" Scope="User">
+      <Value Profile="(Default)">bulksms1.teletalk.com.bd:8091</Value>
     </Setting>
   </Settings>
 </SettingsFile>

@@ -85,7 +85,7 @@ namespace Echo.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("10")]
+        [global::System.Configuration.DefaultSettingValueAttribute("6")]
         public string Refresh_Interval {
             get {
                 return ((string)(this["Refresh_Interval"]));
@@ -97,7 +97,7 @@ namespace Echo.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("5")]
+        [global::System.Configuration.DefaultSettingValueAttribute("4")]
         public string PingSenseTime {
             get {
                 return ((string)(this["PingSenseTime"]));
@@ -152,6 +152,66 @@ namespace Echo.Properties {
             }
             set {
                 this["MsgFooter"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string DB_UID {
+            get {
+                return ((string)(this["DB_UID"]));
+            }
+            set {
+                this["DB_UID"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string DB_PW {
+            get {
+                return ((string)(this["DB_PW"]));
+            }
+            set {
+                this["DB_PW"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string DB_Host {
+            get {
+                return ((string)(this["DB_Host"]));
+            }
+            set {
+                this["DB_Host"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string DB_Name {
+            get {
+                return ((string)(this["DB_Name"]));
+            }
+            set {
+                this["DB_Name"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("bulksms1.teletalk.com.bd:8091")]
+        public string SMS_Server {
+            get {
+                return ((string)(this["SMS_Server"]));
+            }
+            set {
+                this["SMS_Server"] = value;
             }
         }
     }

@@ -30,20 +30,20 @@ namespace Echo
         public String AllLinksUpMessage = "";
         public bool SMSActive = true;
         public bool SMSEvenAllUp = true;
+        public String SMS_Server = "";
         public String Title = "";
         private bool AppLoadedFlag = true;
 
         private String _logviewer = "";
         public string Destination_Excel_url = "";///////////////////////////////////////////
 
-        DBConnect db = new DBConnect();
+        private DBConnect DB = new DBConnect();
 
         public ViewModel()
         {
             this.PropertyChanged += ViewModel_PropertyChanged;
             TimerforUIupdate();
             TimerforStatusResetAndSMS();
-            TimerforNetChecking();
             
             
             _nodes = new ObservableCollection<Entity>();
@@ -55,7 +55,77 @@ namespace Echo
             //_zonelist = new List<Zone>();
         }
 
+        private void ViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "CheckAllorNot")
+            {
+                Dispatcher dispatcher = Application.Current.Dispatcher;
 
+                dispatcher.BeginInvoke((Action)(() =>
+                {
+                    try
+                    {
+                        Nodes.Clear();
+                        if (this.CheckAll)
+                        {
+                            foreach (var item in NodesList)
+                            {
+                                item.Serial = Nodes.Count + 1;
+                                Nodes.Add(item);
+                            }
+                        }
+                        else if (this.CheckConnectedOnly)
+                        {
+                            foreach (var item in NodesList)
+                            {
+                                if (item.Status != "Down" && item.Status != "Unknown")
+                                {
+                                    item.Serial = Nodes.Count + 1;
+                                    Nodes.Add(item);
+                                }
+                            }
+                        }
+                        else if (this.CheckDisconnectedOnly)
+                        {
+                            foreach (var item in NodesList)
+                            {
+                                if (item.Status == "Down" || item.Status == "Unknown")
+                                {
+                                    item.Serial = Nodes.Count + 1;
+                                    Nodes.Add(item);
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        this.LogViewer = "Error in inserting observable collection: " + ex.Message + " <" + ex.GetType().ToString() + ">";
+                        Write_logFile("Error in inserting observable collection: " + ex.Message + " <" + ex.GetType().ToString() + ">");
+                    }
+                }));
+            }
+
+            else if (e.PropertyName == "StartPingFunctionality")
+            {
+                StarOrStopPingRequest();
+            }
+            else if (e.PropertyName == "DB_Host_Name")
+            {
+                DB.Host_Name = this.DB_Host_Name;
+            }
+            else if (e.PropertyName == "DatabaseName")
+            {
+                DB.Database = this.DatabaseName;
+            }
+            else if (e.PropertyName == "DB_UID")
+            {
+                DB.UID = this.DB_UID;
+            }
+            else if (e.PropertyName == "DB_PASSWORD")
+            {
+                DB.PASSWORD = this.DB_PASSWORD;
+            }
+        }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -67,6 +137,52 @@ namespace Echo
                 _UILoadingAnimation = value;
                 // Call OnPropertyChanged whenever the property is updated
                 OnPropertyChanged("UILoadingAnimation");
+            }
+        }
+
+        private string _db_host_name = "";
+        private string _dbname = "";
+        private string _db_uid;
+        private string _db_pw;
+
+        public string DB_Host_Name
+        {
+            get { return _db_host_name; }
+            set
+            {
+                _db_host_name = value;
+                // Call OnPropertyChanged whenever the property is updated
+                OnPropertyChanged("DB_Host_Name");
+            }
+        }
+        public string DatabaseName
+        {
+            get { return _dbname; }
+            set
+            {
+                _dbname = value;
+                // Call OnPropertyChanged whenever the property is updated
+                OnPropertyChanged("DatabaseName");
+            }
+        }
+        public string DB_UID
+        {
+            get { return _db_uid; }
+            set
+            {
+                _db_uid = value;
+                // Call OnPropertyChanged whenever the property is updated
+                OnPropertyChanged("DB_UID");
+            }
+        }
+        public string DB_PASSWORD
+        {
+            get { return _db_pw; }
+            set
+            {
+                _db_pw = value;
+                // Call OnPropertyChanged whenever the property is updated
+                OnPropertyChanged("DB_PASSWORD");
             }
         }
 
@@ -106,17 +222,8 @@ namespace Echo
             }
         }
 
-        private int _UpDownIndicator;
-        public int UpDownIndicator
-        {
-            get { return _UpDownIndicator; }
-            set
-            {
-                _UpDownIndicator = value;
-                // Call OnPropertyChanged whenever the property is updated
-                OnPropertyChanged("UpDownIndicator");
-            }
-        }
+        public int UpDownIndicator { get; set; }
+
 
         private bool _ExcelLoaded = false;
 
@@ -265,41 +372,74 @@ namespace Echo
             }
         }
 
+        public void AppLoaded_Event()
+        {
+            DB.Title = Title;
+        }
+
 
         private static System.Timers.Timer AppLoadingTimer = new System.Timers.Timer();
 
         private void TimerforAppLoading()
         {
+            AppLoadedFlag = true;
             AppLoadingTimer.Interval = PingSensePeriodForSMS * 60 * 1000;
             AppLoadingTimer.AutoReset = false;
             AppLoadingTimer.Elapsed += AppLoadingTimer_Tick;
             AppLoadingTimer.Start();
         }
 
-        private void AppLoadingTimer_Tick(object sender, System.Timers.ElapsedEventArgs e)
+        private async void AppLoadingTimer_Tick(object sender, System.Timers.ElapsedEventArgs e)
         {
             AppLoadedFlag = false;
             AppLoadingTimer.Stop();
             LogViewer = "App Loaded flag disabled";
-            db.Title = Title;
+            List<Entity> downlist = NodesList.Where(s => (s.Status == "Down")).ToList<Entity>();
+
+            DownNodesList.Clear();
+            foreach(var item in downlist)
+            {
+                item.DownTime = DateTime.Now;
+                item.UpTime = null;
+                int count = -1;
+                count = await SearchinDBDownListAsync(item);
+                if (count == 0)
+                {
+                    DownNodesList.Add(item);
+                }
+            }
+            if(DownNodesList.Count > 0)
+            {
+                await InsertDBAsync();                
+            }
+            LogViewer = "Completed MySQL Database sync in application side.";
+            Write_logFile(LogViewer);
         }
 
+        private static System.Timers.Timer PingSenseTimer = new System.Timers.Timer();
 
-        static bool PingSenseFlag = false;
-
-        private static System.Timers.Timer PingSenseFlagTimer = new System.Timers.Timer();
-
-        private void TimerforPingSenseFlag()
+        private void TimerforPingSenseMethod()
         {
-            PingSenseFlag = true;
-            LogViewer = "Ping sense flag enabled";
+            LogViewer = "Ping sense timer enabled";
 
-            PingSenseFlagTimer.Interval = PingSensePeriodForSMS * 60 * 1000;
-            PingSenseFlagTimer.AutoReset = false;
-            PingSenseFlagTimer.Elapsed += PingSenseFlagTimer_Tick;
-            PingSenseFlagTimer.Start();
+            PingSenseTimer.Interval = PingSensePeriodForSMS * 60 * 1000;
+            PingSenseTimer.AutoReset = false;
+            PingSenseTimer.Elapsed += PingSenseFlagTimer_Tick;
+            PingSenseTimer.Start();
         }
 
+        public bool CheckDBConnection()
+        {
+            bool stat = false;
+            lock (DB)
+            {
+                stat = DB.CheckDBConnection();
+            }
+            if (stat)
+                return true;
+            else
+                return false;
+        }
 
         private async void Node_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
@@ -311,20 +451,16 @@ namespace Echo
                     if (!DownNodesList.Contains(en))
                     {
                         int count = -1;
-                        count = await SearchinDBDownList(en);
+                        count = await SearchinDBDownListAsync(en);
 
 
                         if (count == 0)
                         {
                             LogViewer = "Monitoring " + en.Area + " for 'Down' Status.";
-                            //en.DownTime = DateTime.Now;
                             TempDownNodesList.Add(en);
-                            if (!PingSenseFlag)
+                            if (!PingSenseTimer.Enabled)
                             {
-                                //timeCounter = SMSInterval - PingSensePeriodForSMS - 1;
-                                
-                                //NextSMSTime = DateTime.Now.AddMinutes(PingSensePeriodForSMS).ToLongTimeString();
-                                TimerforPingSenseFlag();
+                                TimerforPingSenseMethod();
                             }
                         }
                         else if (count > 1)
@@ -338,20 +474,17 @@ namespace Echo
                     if(!UPNodesList.Contains(en))
                     {
                         int count = -1;
-                        count = await SearchinDBDownList(en);
+                        count = await SearchinDBDownListAsync(en);
 
 
                         if (count == 1)
                         {
                             LogViewer = "Monitoring " + en.Area + " for 'Up' Status.";
-
-                            //en.UpTime = DateTime.Now;
-                            UPNodesList.Add(en);
-                            if (!PingSenseFlag)
+                            if(!UPNodesList.Select(s => s.IPAddress).ToList().Contains(en.IPAddress))
+                                UPNodesList.Add(en);
+                            if (!PingSenseTimer.Enabled)
                             {
-                                //timeCounter = SMSInterval - PingSensePeriodForSMS - 1;
-                                //NextSMSTime = DateTime.Now.AddMinutes(PingSensePeriodForSMS).ToLongTimeString();
-                                TimerforPingSenseFlag();
+                                TimerforPingSenseMethod();
                             }
                         }
                         else if(count > 1)
@@ -363,42 +496,27 @@ namespace Echo
             }
         }
 
-        //public async Task<int> DBTask(Entity en)
-        //{
-        //    int count = 0;
-        //    Task<int> tsk = SearchinDBDownList(en);
-        //    await Task.WhenAll(tsk);
-            
-        //    count = tsk.Result;
-        //    tsk.Dispose();
-        //    return count;
-        //}
 
-        //public Task<int> DBTaskAsync(Entity en)
-        //{
-        //    return Task.Run(() => SearchinDBDownList(en));
-        //}
-
-        private async Task<int> SearchinDBDownList(Entity en)
+        private async Task<int> SearchinDBDownListAsync(Entity en)
         {
             int count = 0;
 
-            lock(db)
+            lock(DB)
             {
-                count = db.SearchinCurrentDownNodes(en.IPAddress);
+                count = DB.SearchinCurrentDownNodes(en.IPAddress);
             }
 
             return count;
         }
 
-        private async void InsertDB()
+        private async Task InsertDBAsync()
         {
             int inserted_downtable = 0, inserted_uptable = 0;
 
             foreach (var item in UPNodesList)
             {
                 int count = -1, row = 0;
-                count = await SearchinDBDownList(item);
+                count = await SearchinDBDownListAsync(item);
 
                 if (count == 1)
                 {
@@ -422,7 +540,7 @@ namespace Echo
 
             if(inserted_uptable != -1)
             {
-                LogViewer = "Number of rows inserted on UP node table in DB: " + inserted_uptable;
+                LogViewer = "Number of rows inserted on UP node status table in DB: " + inserted_uptable;
                 Write_logFile(LogViewer);
                 UPNodesList.Clear();
             }
@@ -430,7 +548,7 @@ namespace Echo
             foreach (var item in DownNodesList)
             {
                 int count = -1, row = 0;
-                count = await SearchinDBDownList(item);
+                count = await SearchinDBDownListAsync(item);
 
                 if (count == 0)
                 {
@@ -474,10 +592,10 @@ namespace Echo
         private int DBInsertion4UpNodes(Entity en)
         {
             int count = -1;
-            lock (db)
+            lock (DB)
             {
                 string downtime = "";
-                downtime = db.SelectDownTimefromDownTable(en.IPAddress);
+                downtime = DB.SelectDownTimefromDownTable(en.IPAddress);
 
 
                 if (downtime != "")
@@ -491,12 +609,12 @@ namespace Echo
                     
                     string monthCycle = en.UpTime.Value.Year.ToString() + en.UpTime.Value.Month.ToString();
                     string dateCycle = en.UpTime.Value.Day.ToString();
-                    count = db.InsertUpNodes(en.IPAddress, en.Name, en.Area, dt.ToString("yyyy-MM-dd HH:mm:ss"), en.UpTime.Value.ToString("yyyy-MM-dd HH:mm:ss"), 
+                    count = DB.InsertUpNodes(en.IPAddress, en.Name, en.Area, dt.ToString("yyyy-MM-dd HH:mm:ss"), en.UpTime.Value.ToString("yyyy-MM-dd HH:mm:ss"), 
                         duration_ddhhmm, Totalhours.ToString(), min.ToString(), monthCycle, dateCycle);
 
                     if(count == 1)
                     {
-                        db.DeletefromDownTable(en.IPAddress);
+                        DB.DeletefromDownTable(en.IPAddress);
                     }
                 }
             }
@@ -506,86 +624,75 @@ namespace Echo
         private int DBInsertion4DownNodes(Entity en)
         {
             int count = -1;
-            lock (db)
+            lock (DB)
             {
-                count = db.InsertDownNodes(en.IPAddress, en.Name, en.Area, en.DownTime.Value.ToString("yyyy-MM-dd HH:mm:ss"));
+                count = DB.InsertDownNodes(en.IPAddress, en.Name, en.Area, en.DownTime.Value.ToString("yyyy-MM-dd HH:mm:ss"));
             }
             return count;
         }
 
-
-
-        private void ViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        bool RunningDBSync = false;
+        private async void SyncDBAsync()
         {
-            if (e.PropertyName == "CheckAllorNot")
+            LogViewer = "Syncing MySQL Database......";
+            Write_logFile(LogViewer);
+            RunningDBSync = true;
+            int status = 0;
+            List<string> down_ip_list_fromDB = new List<string>();
+            lock (DB)
             {
-                Dispatcher dispatcher = Application.Current.Dispatcher;
+                down_ip_list_fromDB = DB.SelectDownNodes();
+            }
 
-                dispatcher.BeginInvoke((Action)(() =>
+            List<String> ip_list = NodesList.Select(o => o.IPAddress).ToList();
+
+            UPNodesList.Clear();
+            foreach (var item in down_ip_list_fromDB)
+            {
+                if (ip_list.Contains(item))
                 {
-                    try
+                    int i = 0;
+                    while(status != -1)
                     {
-                        Nodes.Clear();
-                        if (this.CheckAll)
-                        {
-                            foreach (var item in NodesList)
-                            {
-                                item.Serial = Nodes.Count + 1;
-                                Nodes.Add(item);
-                            }
-                        }
-                        else if (this.CheckConnectedOnly)
-                        {
-                            foreach (var item in NodesList)
-                            {
-                                if (item.Status != "Down" && item.Status != "Unknown")
-                                {
-                                    item.Serial = Nodes.Count + 1;
-                                    Nodes.Add(item);
-                                }
-                            }
-                        }
-                        else if (this.CheckDisconnectedOnly)
-                        {
-                            foreach (var item in NodesList)
-                            {
-                                if (item.Status == "Down" || item.Status == "Unknown")
-                                {
-                                    item.Serial = Nodes.Count + 1;
-                                    Nodes.Add(item);
-                                }
-                            }
-                        }
+                        status = await TryToPingNodesAync(item);
+                        if (status == 1) break;
+                        i++;
+                        if (i == 4) break;
                     }
-                    catch (Exception ex)
+
+                    if(status == 1)
                     {
-                        this.LogViewer = "Error in inserting observable collection: " + ex.Message + " <" + ex.GetType().ToString() + ">";
-                        Write_logFile("Error in inserting observable collection: " + ex.Message + " <" + ex.GetType().ToString() + ">");
+                        NodesList.FirstOrDefault(s => (s.IPAddress == item)).UpTime = DateTime.Now;
+                        NodesList.FirstOrDefault(s => (s.IPAddress == item)).DownTime = null;
+                        UPNodesList.Add(NodesList.FirstOrDefault(s => (s.IPAddress == item)));
                     }
-                }));
+                    else if(status == -1)
+                    {
+                        break;
+                    }
+                }
+                else
+                {
+                    DB.DeletefromDownTable(item);
+                }
             }
-            //else if (e.PropertyName == "NodeslistChanged")
-            //{
 
-            //}
-            //else if (e.PropertyName == "DownRoutersListChanged")
-            //{
-
-            //}
-            //else if (e.PropertyName == "NodesChanged")
-            //{
-
-            //}
-            else if (e.PropertyName == "StartPingFunctionality")
+            if(status != -1)
             {
-                StarOrStopPingRequest();
+                if (UPNodesList.Count > 0)
+                {
+                    InsertDBAsync();
+                }
+                RunningDBSync = false;
+                LogViewer = "Completed MySQL Database sync in DB side.";
+                Write_logFile(LogViewer);
             }
-            else if (e.PropertyName == "UpDownIndicator")
+            else
             {
-                Entity.UpDownIndicator = this.UpDownIndicator;
+                LogViewer = "Failed to sync. It will retry after sometimes";
+                Write_logFile(LogViewer);
             }
         }
-
 
 
         private void StarOrStopPingRequest()
@@ -627,7 +734,7 @@ namespace Echo
         private void StatusResetAndSMSTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
             timeCounter++;
-            LogViewer = "timeCounter " + timeCounter.ToString();
+            //LogViewer = "timeCounter " + timeCounter.ToString();
             if (timeCounter == SMSInterval - PingSensePeriodForSMS) //reset before sms
             {
                 ResetStatus();
@@ -710,68 +817,106 @@ namespace Echo
         private void PingSenseFlagTimer_Tick(object sender, System.Timers.ElapsedEventArgs e)
         {
             this.RunPingFunctionality = false;
-            PingSenseFlagTimer.Stop();
+            PingSenseTimer.Stop();
             List<String> down_ip_list = NodesList.Where(s => (s.Status == "Down")).ToList<Entity>().Select(o => o.IPAddress).ToList();
 
-            bool shouldsendSMS = false;
-            if(TempDownNodesList.Count > 0)
+            int downnodescount = NodesList.Where(s => (s.Status == "Down" || s.Status == "Unknown")).ToList<Entity>().Count;
+            if (downnodescount != NodesList.Count)
             {
-                int downnodescount = NodesList.Where(s => (s.Status == "Down" || s.Status == "Unknown")).ToList<Entity>().Count;
-
-                if (downnodescount != NodesList.Count)
+                bool shouldsendSMS4up = false, shouldsendSMS4down = false;
+                if (TempDownNodesList.Count > 0)
                 {
-                    foreach (var item in TempDownNodesList)
+                    int N = TempDownNodesList.Count;
+                    for (int i = 0; i < N; i++)
                     {
-                        if (down_ip_list.Contains(item.IPAddress))
+                        if (!down_ip_list.Contains(TempDownNodesList[i].IPAddress))
                         {
-                            LogViewer = "Firing SMS for node changing to down status.";
-                            Write_logFile(LogViewer);
-                            
-                            shouldsendSMS = true;
-                            break;
+                            TempDownNodesList.RemoveAt(i);
                         }
                     }
-                }
-            }
-            TempDownNodesList.Clear();
-            
-            if (UPNodesList.Count > 0)
-            {
-                foreach (var item in UPNodesList)
-                {
-                    if (down_ip_list.Contains(item.IPAddress))
+                    if(TempDownNodesList.Count > 0)
                     {
-                        UPNodesList.Remove(item);
+                        shouldsendSMS4down = true;
                     }
                 }
-                if(UPNodesList.Count > 0)
-                {
-                    shouldsendSMS = true;
-                }
-            }
 
-            if(shouldsendSMS)
-            {
-                SMSThreadMethod();
+                if (UPNodesList.Count > 0)
+                {
+                    int N = UPNodesList.Count;
+
+                    for (int i = 0; i < N; i++)
+                    {
+                        if (down_ip_list.Contains(UPNodesList[i].IPAddress))
+                        {
+                            UPNodesList.RemoveAt(i);
+                        }
+                    }
+                    if (UPNodesList.Count > 0)
+                    {
+                        shouldsendSMS4up = true;
+                    }
+                }
+
+                if(shouldsendSMS4down && !shouldsendSMS4up)
+                {
+                    LogViewer = "Firing SMS for node changing to down status.";
+                    Write_logFile(LogViewer);
+                }
+                else if(!shouldsendSMS4down && shouldsendSMS4up)
+                {
+                    TempDownNodesList.Clear();
+                    LogViewer = "Firing SMS for node changing to up status.";
+                    
+                    Write_logFile(LogViewer);
+                }
+                else if (shouldsendSMS4down && shouldsendSMS4up)
+                {
+                    LogViewer = "Firing SMS for both status changes for some nodes.";
+                    Write_logFile(LogViewer);
+                }
+                else
+                {
+                    TempDownNodesList.Clear();
+                    LogViewer = "SMS halted due to status reverse (fluctuation).";
+                    Write_logFile(LogViewer);
+                }
+
+                if (shouldsendSMS4up || shouldsendSMS4down)
+                {
+                    SMSThreadMethod();
+                }
+                else
+                {
+                    this.RunPingFunctionality = true;
+                }
             }
             else
             {
-                this.RunPingFunctionality = true;
+                LogViewer = "Please check internet connection.";
+                Write_logFile("Network down when firing SMS due to status change.");
             }
         }
+
+
 
         int DCount = 0, UCount = 0;
         private string BuildSMSContent_DownNodes()
         {
             string SMSContentString = "";
+            DCount = 0;
             DownNodesList.Clear();
             DownNodesList = NodesList.Where(s => (s.Status == "Down")).ToList<Entity>();
 
-
-            DCount = 0;
-
             if (DownNodesList.Count > 0)
             {
+                if (TempDownNodesList.Count > 0)
+                {
+                    foreach (var item in TempDownNodesList)
+                    {
+                        SMSContentString = SMSContentString + ", " + item.Area;
+                        DCount++;
+                    }
+                }
                 foreach (var item in DownNodesList)
                 {
                     if (item.DownTime == null)
@@ -780,14 +925,14 @@ namespace Echo
                     }
                     item.UpTime = null;
 
-                    if (item.Action_Type == NodeType.SMSENABLED.ToString())
+                    if (item.Action_Type == NodeType.SMSENABLED.ToString() && !TempDownNodesList.Contains(item))
                     {
-                        SMSContentString = item.Area + ", " + SMSContentString;
+                        SMSContentString = SMSContentString + ", " + item.Area;
                         DCount++;
                     }
                 }
             }
-
+            TempDownNodesList.Clear();
             return SMSContentString;
         }
 
@@ -799,6 +944,15 @@ namespace Echo
 
             if (UPNodesList.Count > 0)
             {
+                int N = UPNodesList.Count;
+                for (int i = 0; i < N; i++)
+                {
+                    if (DownNodesList.Contains(UPNodesList[i]))
+                    {
+                        UPNodesList.RemoveAt(i);
+                    }
+                }
+
                 foreach (var item in UPNodesList)
                 {
                     if (item.UpTime == null)
@@ -808,7 +962,7 @@ namespace Echo
                     item.DownTime = null;
                     if (item.Action_Type == NodeType.SMSENABLED.ToString())
                     {
-                        SMSContentString = item.Area + ", " + SMSContentString;
+                        SMSContentString = SMSContentString + ", " + item.Area;
                         UCount++;
                     }
                 }
@@ -829,7 +983,7 @@ namespace Echo
                 SMSContentString_downNodes = BuildSMSContent_DownNodes();
                 SMSContentString_UpNodes = BuildSMSContent_UpNodes();
 
-                Task.Run(() => InsertDB());
+                Task.Run(() => InsertDBAsync());
                 SMSTrigger(SMSContentString_downNodes, SMSContentString_UpNodes);
 
             }
@@ -853,9 +1007,9 @@ namespace Echo
 
             if (SMSContentString_DownNodes != "")
             {
-                if (SMSContentString_DownNodes[contentlen - 1] == ' ')
+                if (SMSContentString_DownNodes[0] == ',')
                 {
-                    SMSContentString_DownNodes = SMSContentString_DownNodes.Substring(0, contentlen - 2);
+                    SMSContentString_DownNodes = SMSContentString_DownNodes.Substring(2, contentlen - 2);
                 }
             }
 
@@ -863,9 +1017,9 @@ namespace Echo
 
             if (SMSContentString_UpNodes != "")
             {
-                if (SMSContentString_UpNodes[contentlen - 1] == ' ')
+                if (SMSContentString_UpNodes[0] == ',')
                 {
-                    SMSContentString_UpNodes = SMSContentString_UpNodes.Substring(0, contentlen - 2);
+                    SMSContentString_UpNodes = SMSContentString_UpNodes.Substring(2, contentlen - 2);
                 }
             }
 
@@ -957,7 +1111,7 @@ namespace Echo
             {
                 try
                 {
-                    String UrlString = "http://bulksms.teletalk.com.bd/link_sms_send.php?op=SMS&user=" + User_Name_String + "&pass=" + Password_String;
+                    String UrlString = "http://" + SMS_Server + "/link_sms_send.php?op=SMS&user=" + User_Name_String + "&pass=" + Password_String;
                     HttpWebRequest request = (HttpWebRequest)WebRequest.Create(@UrlString);
                     request.AllowWriteStreamBuffering = false;
 
@@ -1030,7 +1184,7 @@ namespace Echo
                 {
                     SMSContentString = SMSContentString.Replace("&", "%26");
                 }
-                String UrlString = "http://bulksms.teletalk.com.bd/link_sms_send.php?op=SMS&user=" + User_Name_String + "&pass=" + Password_String + "&mobile=0" + PhnNum.ToString() + "&sms=" + SMSContentString;//#############################################################
+                String UrlString = "http://" + SMS_Server + "/link_sms_send.php?op=SMS&user=" + User_Name_String + "&pass=" + Password_String + "&mobile=0" + PhnNum.ToString() + "&sms=" + SMSContentString;//#############################################################
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(@UrlString);
                 request.AllowWriteStreamBuffering = false;
 
@@ -1121,7 +1275,6 @@ namespace Echo
 
                         DCount = 0;
                         UCount = 0;
-                        PingSenseFlag = false;
                         SentMsgCount = 0;
                         timeCounter = 0;
                         NextSMSTime = DateTime.Now.AddMinutes(SMSInterval).ToLongTimeString();
@@ -1167,16 +1320,16 @@ namespace Echo
                     String s = "";
                     if (ex.InnerException == null)
                     {
-                        s = "Error in SMS sending to: " + PhnNum.ToString() + ", " + ex.Message + " <" + ex.GetType().ToString() + ">" + ", Number of Attemt: " + NumberofFailtoSendSMS;
+                        s = "Error in SMS sending to: 0" + PhnNum.ToString() + ", " + ex.Message + " <" + ex.GetType().ToString() + ">" + ", Number of Attemt: " + NumberofFailtoSendSMS;
                     }
                     else
                     {
-                        s = "Error in SMS sending to: " + PhnNum.ToString() + ", " + ex.Message + " <" + ex.GetType().ToString() + ": " + ex.InnerException.ToString() + ">" + ", Number of Attemt: " + NumberofFailtoSendSMS;
+                        s = "Error in SMS sending to: 0" + PhnNum.ToString() + ", " + ex.Message + " <" + ex.GetType().ToString() + ": " + ex.InnerException.ToString() + ">" + ", Number of Attemt: " + NumberofFailtoSendSMS;
                     }
 
                     Write_logFile(s);/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-                    LogViewer = "Error in SMS sending to: " + PhnNum.ToString() + ", " + ex.Message + " <" + ex.GetType().ToString() + ">" + ", Number of Attemt: " + NumberofFailtoSendSMS;
+                    LogViewer = "Error in SMS sending to: 0" + PhnNum.ToString() + ", " + ex.Message + " <" + ex.GetType().ToString() + ">" + ", Number of Attemt: " + NumberofFailtoSendSMS;
                     //LogViewer = "Please make sure your PC is connected to internet.";
 
 
@@ -1332,7 +1485,10 @@ namespace Echo
                     Write_logFile("Next SMS time: " + NextSMSTime);
                 }
 
+
                 UILoadingAnimation = false; //for logo
+
+                Task.Run(()=> SyncDBAsync());
 
                 Thread.Sleep(5000);
                 RunPingFunctionality = true;
@@ -1342,6 +1498,8 @@ namespace Echo
                 UILoadingAnimation = false; //for logo
             }
         }
+
+
 
         void UpdateUINodes()
         {
@@ -1378,7 +1536,6 @@ namespace Echo
                 int lastUsedRow = last.Row;
                 int lastUsedColumn = last.Column;
 
-                //
                 NodesList.Clear();
 
                 for (int i = 2; i <= lastUsedRow; i++)
@@ -1412,29 +1569,8 @@ namespace Echo
 
                     _nd.PropertyChanged += Node_PropertyChanged;
 
-                    //_nd.Zone = xlWorkSheet1.Cells[i, 5].Value2.ToString();
                     NodesList.Add(_nd);
                 }
-
-
-                //IEnumerable<String> duplicates = from item in NodesList
-                //                                 select item.Zone;
-
-
-
-                //IEnumerable<String> noduplicates = duplicates.Distinct();
-
-                //ZoneList.Clear();
-                //foreach (var item in noduplicates)
-                //{
-                //    Zone zn = new Zone();
-                //    zn.ZoneName = item;
-
-                //    zn.ZoneCount = (from _itm in duplicates
-                //                    where _itm == item
-                //                    select _itm).Count();
-                //    ZoneList.Add(zn);
-                //}
 
 
                 last = xlWorkSheet2.Cells.SpecialCells(Excel.XlCellType.xlCellTypeLastCell, Type.Missing);
@@ -1449,7 +1585,7 @@ namespace Echo
                     PhoneNumberList.Add(Convert.ToInt32(str));
                 }
                 ExcelLoaded = true;
-                AppLoadedFlag = true;
+
                 TimerforAppLoading();                
             }
             catch (Exception ex)
@@ -1490,7 +1626,45 @@ namespace Echo
             }
         }
 
+        private async Task<int> TryToPingNodesAync(string ipaddress)
+        {
+            int replystatus = -1;
+            Ping pingSender = new Ping();
+            try
+            {
+                if (NetworkInterface.GetIsNetworkAvailable())
+                {
+                    PingReply reply = await pingSender.SendPingAsync(ipaddress);
+                    if(reply.Status == IPStatus.Success)
+                    {
+                        replystatus = 1;
+                    }
+                    else
+                    {
+                        replystatus = 0;
+                    }
+                }
+                else
+                {
+                    LogViewer = "Network cable may be unplugged. Please fix it as soon as possible.";
+                    MessageBox.Show(LogViewer, Title, MessageBoxButton.OK, MessageBoxImage.Error);
 
+                    EnablingTimerforNetChecking(60);
+                }
+            }
+            catch(Exception ex)
+            {
+                LogViewer = "Exception in DBSync: " + ex.Message;
+                Write_logFile(LogViewer);
+
+                EnablingTimerforNetChecking(180);
+            }
+            finally
+            {
+                pingSender.Dispose();
+            }
+            return replystatus;
+        }
 
         private void TryToPingNodes()
         {
@@ -1543,16 +1717,16 @@ namespace Echo
                                 else if (NodesList[index].PercentageLoss > 20 && NodesList[index].PercentageLoss <= 50 && NodesList[index].PingCount >= 4)
                                 {
                                     NodesList[index].Color_Type2 = Colors.Blue;
-                                    if (NodesList[index].Status != "Moderate")
-                                        NodesList[index].Status = "Moderate";
+                                    if (NodesList[index].Status != "Suitable")
+                                        NodesList[index].Status = "Suitable";
                                 }
-                                else if (NodesList[index].PercentageLoss > 50 && NodesList[index].PercentageLoss < Entity.UpDownIndicator && NodesList[index].PingCount >= 4)
+                                else if (NodesList[index].PercentageLoss > 50 && NodesList[index].PercentageLoss < this.UpDownIndicator && NodesList[index].PingCount >= 4)
                                 {
                                     NodesList[index].Color_Type2 = Colors.DarkOrange;
                                     if (NodesList[index].Status != "Poor")
                                         NodesList[index].Status = "Poor";
                                 }
-                                else if (NodesList[index].PercentageLoss >= Entity.UpDownIndicator && NodesList[index].PingCount >= 4)
+                                else if (NodesList[index].PercentageLoss >= this.UpDownIndicator && NodesList[index].PingCount >= 4)
                                 {
                                     NodesList[index].Color_Type2 = Colors.Red;
                                     if (NodesList[index].Status != "Down")
@@ -1571,21 +1745,12 @@ namespace Echo
                             {
                                 this.RunPingFunctionality = false;
                                 LogViewer = "Error in Network adapter: " + "Network cable may be unplugged. Please fix it as soon as possible.";
+                                MessageBox.Show(LogViewer, Title, MessageBoxButton.OK, MessageBoxImage.Error);
                             }
-
 
                             Write_logFile("Error in Network adapter: node number: " + index.ToString() + ". " + "Network cable may be unplugged. No connection is found.");
 
-                            lock (thisLock)
-                            {
-                                if (!NetCheckingTimer.Enabled)
-                                {
-                                    NetCheckingTimer.Interval = 60000;
-                                    LogViewer = "Ping Paused for 60 seconds.";
-                                    Write_logFile(LogViewer);
-                                    NetCheckingTimer.Start();
-                                }
-                            }
+                            EnablingTimerforNetChecking(60);
                         }
 
                         index++;
@@ -1612,17 +1777,8 @@ namespace Echo
                         NodesList[index].Color_Type2 = Colors.Red;
                         NodesList[index].Status = "Unknown";
 
+                        EnablingTimerforNetChecking(180);
 
-                        lock (thisLock)
-                        {
-                            if (!NetCheckingTimer.Enabled)
-                            {
-                                NetCheckingTimer.Interval = 180000;
-                                LogViewer = "Ping Paused for 180 seconds.";
-                                Write_logFile(LogViewer);
-                                NetCheckingTimer.Start();
-                            }
-                        }
                     }
                     finally
                     {
@@ -1632,16 +1788,26 @@ namespace Echo
             }
         }
 
-        private Object thisLock = new Object();
+        private Object netcheckerLock = new Object();
 
 
         private static System.Timers.Timer NetCheckingTimer = new System.Timers.Timer();
 
-        private void TimerforNetChecking()
+        private void EnablingTimerforNetChecking(int i)
         {
-            //NetCheckingTimer.Interval = TimeSpan.FromSeconds(60);///////////////////////////////////////////////consider always////////////////////////////////////////////////////
-            NetCheckingTimer.AutoReset = true;
-            NetCheckingTimer.Elapsed += NetCheckingTimer_Tick;
+            lock (netcheckerLock)
+            {
+                if (!NetCheckingTimer.Enabled)
+                {
+                    NetCheckingTimer.AutoReset = true;
+                    NetCheckingTimer.Elapsed += NetCheckingTimer_Tick;
+
+                    NetCheckingTimer.Interval = i * 1000;
+                    LogViewer = "Ping Paused for " + i.ToString() + " seconds.";
+                    Write_logFile(LogViewer);
+                    NetCheckingTimer.Start();
+                }
+            }
         }
 
         private void NetCheckingTimer_Tick(object sender, System.Timers.ElapsedEventArgs e)
@@ -1650,6 +1816,10 @@ namespace Echo
             {
                 this.RunPingFunctionality = true;
                 NetCheckingTimer.Stop();
+                if(RunningDBSync)
+                {
+                    Task.Run(() => SyncDBAsync());
+                }
 
                 LogViewer = "Network connection is OK now.";
                 Write_logFile(LogViewer);
