@@ -255,7 +255,7 @@ namespace Echo
             SMS_Checkbox.IsChecked = Properties.Settings.Default.SMS_Checkbox_Data;
             user_name.Text = Properties.Settings.Default.User_Name_String;
             acc_psw.Password = Properties.Settings.Default.Password_String;
-            Properties.Settings.Default.ParcentLoss = ParcentLoss_txtbox.Text;
+            ParcentLoss_txtbox.Text = Properties.Settings.Default.ParcentLoss;
             SMSInterval_txtbox.Text = Properties.Settings.Default.SMS_Interval;
             RefreshInterval_txtbox.Text = Properties.Settings.Default.Refresh_Interval;
             PingSenseTime_txtbox.Text = Properties.Settings.Default.PingSenseTime;
@@ -1163,7 +1163,10 @@ namespace Echo
                 "\n  17. Add text in 'All PoPs up' message box in settings, which will be the message if all PoPs are up." +
                 "\n  19. You can stop sending SMS when all PoPs are up by unchecking 'Send SMS even all PoPs are up' at SMS Settings." +
                 "\n  20. You can stop sending SMS for a particular PoP temporarily. To do this, double click on a PoP and disable its SMS." +
-                "\n  21. Database Connection should be connected properly. In MySQL database, there should be two tables: a) CurrentDownPoPs, b) PoP_Status. These should have proper fields. Contact administrator to change any field manually.";
+                "\n  21. Database Connection should be connected properly. In MySQL database, there should be two tables: a) CurrentDownPoPs, b) PoP_Status. These should have proper fields. Contact administrator to change any field manually." +
+                "\n  22. MOST IMPORTANT: Create new partition on database for new year at end of each year.";
+
+
         }
 
 
@@ -1178,7 +1181,7 @@ namespace Echo
             {
                 VM.SMSEvenAllUp = true;
                 AllLinksUp_txtbox.IsEnabled = true;
-                Show_LogTextblock("SMS will be sent even all links are up.");
+                Show_LogTextblock("SMS will be sent even all PoPs are up.");
             }
         }
 
@@ -1187,7 +1190,7 @@ namespace Echo
         {
             VM.SMSEvenAllUp = false;
             AllLinksUp_txtbox.IsEnabled = false;
-            Show_LogTextblock("SMS will not be sent when all links are up.");
+            Show_LogTextblock("SMS will not be sent when all PoPs are up.");
         }
 
         private void AccTest_btn_Click(object sender, RoutedEventArgs e)
