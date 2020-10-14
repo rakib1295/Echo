@@ -142,7 +142,7 @@ namespace Echo
                         string DownDuration_ddhhmm, string Totalhour, string min, string monthCycle, string dateCycle)
         {
             int count = -1;
-            string query = "INSERT INTO Nodes_Status " +
+            string query = "INSERT INTO PoP_Status " +
                 "(IPAddress, Name, Area, DownTime, UpTime, DownDuration_ddhhmm, Down_TotalHour, Down_Min, Month_Cycle, Date_Cycle) " +
                 "VALUES('" + IPaddress + "', '" + Name + "','" + Area + "', '" + downtime + "','" + uptime + "', '" 
                 + DownDuration_ddhhmm + "','" + Totalhour + "', '" + min + "','" + monthCycle + "', '" + dateCycle + "')";

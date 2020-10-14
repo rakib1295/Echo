@@ -222,7 +222,7 @@ namespace Echo
             }
         }
 
-        public int UpDownIndicator { get; set; }
+        public int UpDownIndicator { get; set; } = 90;
 
 
         private bool _ExcelLoaded = false;
@@ -716,8 +716,8 @@ namespace Echo
 
 
         public int SMSInterval = 120; //min
-        public int PingSensePeriodForSMS = 5; //min
-        public int RefreshPeriod = 10; //min
+        public int PingSensePeriodForSMS = 4; //min
+        public int RefreshPeriod = 6; //min
 
         private static System.Timers.Timer StatusResetAndSMSTimer = new System.Timers.Timer();
 
@@ -1028,20 +1028,20 @@ namespace Echo
             {
                 if (UCount > 1)
                 {
-                    SMSContentString = SMSContentString_UpNodes + " links are up.\n";
+                    SMSContentString = SMSContentString_UpNodes + " PoPs are up.\n";
                 }
                 else if (UCount == 1)
                 {
-                    SMSContentString = SMSContentString_UpNodes + " link is up.\n";
+                    SMSContentString = SMSContentString_UpNodes + " PoP is up.\n";
                 }
 
                 if (DCount > 1)
                 {
-                    SMSContentString = SMSContentString + SMSContentString_DownNodes + " links are down.\n";
+                    SMSContentString = SMSContentString + SMSContentString_DownNodes + " PoPs are down.\n";
                 }
                 else if (DCount == 1)
                 {
-                    SMSContentString = SMSContentString + SMSContentString_DownNodes + " link is down.\n";
+                    SMSContentString = SMSContentString + SMSContentString_DownNodes + " PoP is down.\n";
                 }
             }
             else
@@ -1052,7 +1052,7 @@ namespace Echo
                 }
                 else
                 {
-                    LogViewer = "All links are up now, so message will not be sent.";
+                    LogViewer = "All PoPs are up now, so message will not be sent.";
                 }
             }
 
@@ -1467,13 +1467,13 @@ namespace Echo
                 int cnt = (from _itm in NodesList
                            where _itm.Action_Type == NodeType.SMSENABLED.ToString()
                            select _itm).Count();
-                LogViewer = "Number of links which should be notified through SMS: " + cnt.ToString();
+                LogViewer = "Number of PoPs which should be notified through SMS: " + cnt.ToString();
                 Write_logFile(LogViewer);
 
                 cnt = (from _itm in NodesList
                        where _itm.Action_Type == NodeType.PINGONLY.ToString()
                        select _itm).Count();
-                LogViewer = "Number of links which will ping only: " + cnt.ToString();
+                LogViewer = "Number of PoPs which will ping only: " + cnt.ToString();
                 Write_logFile(LogViewer);
 
                 LogViewer = "Number of Phone numbers: " + PhoneNumberList.Count.ToString();

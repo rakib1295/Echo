@@ -134,19 +134,19 @@ namespace Echo
                 {
                     _NodeSMSStatus.Text = "SMS Enabled";
                     _NodeSMSStatus.Foreground = Brushes.Green;
-                    Edit_btn.Content = "Temporarily disable SMS for this link?";
+                    Edit_btn.Content = "Temporarily disable SMS for this PoP?";
                 }
                 else
                 {
                     _NodeSMSStatus.Text = "Ping Only";
                     _NodeSMSStatus.Foreground = Brushes.Red;
-                    Edit_btn.Content = "Enable SMS for this link ->";
+                    Edit_btn.Content = "Enable SMS for this PoP ->";
                 }
             }
             catch (Exception ex)
             {
                 Show_LogTextblock("Please double click again.");
-                VM.Write_logFile("Exception while double clicking on a link: " + ex.Message + " <" + ex.GetType().ToString() + ">");
+                VM.Write_logFile("Exception while double clicking on a PoP: " + ex.Message + " <" + ex.GetType().ToString() + ">");
             }
         }
 
@@ -159,16 +159,16 @@ namespace Echo
                 _itm.Action_Type = NodeType.PINGONLY.ToString();
                 _NodeSMSStatus.Text = "Ping Only";
                 _NodeSMSStatus.Foreground = Brushes.Red;
-                Edit_btn.Content = "Enable SMS for this link ->";
-                Show_LogTextblock(_itm.Area + " link has been configured as " + _itm.Action_Type + ". No SMS will be sent for this link.");
+                Edit_btn.Content = "Enable SMS for this PoP ->";
+                Show_LogTextblock(_itm.Area + " PoP has been configured as " + _itm.Action_Type + ". No SMS will be sent for this PoP.");
             }
             else
             {
                 _itm.Action_Type = NodeType.SMSENABLED.ToString();
                 _NodeSMSStatus.Text = "SMS Enabled";
                 _NodeSMSStatus.Foreground = Brushes.Green;
-                Edit_btn.Content = "Temporarily disable SMS for this link?";
-                Show_LogTextblock(_itm.Area + " link has been configured as " + _itm.Action_Type + ".");
+                Edit_btn.Content = "Temporarily disable SMS for this PoP?";
+                Show_LogTextblock(_itm.Area + " PoP has been configured as " + _itm.Action_Type + ".");
             }
         }
 
@@ -274,7 +274,8 @@ namespace Echo
 
         private void Default_btn_Click(object sender, RoutedEventArgs e)
         {
-            if (MessageBox.Show("Do you want to reset settings data to default value?", VM.Title, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            Popup_Settings.IsOpen = true;
+            if (MessageBox.Show("Do you want to reset PoP status settings data to default value?", VM.Title, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             {
                 SMS_Checkbox.IsChecked = true;
                 ParcentLoss_txtbox.Text = "90";
@@ -284,7 +285,7 @@ namespace Echo
                 MsgHeader_txtbox.Text = "Dear Sir,";
                 MsgFooter_txtbox.Text = "NOC\nMoghbazar\nT-0258312345";
                 SMSIfAllUp_Checkbox.IsChecked = true;
-                AllLinksUp_txtbox.Text = "All links are up now.";
+                AllLinksUp_txtbox.Text = "All PoPs are up now.";
                 Show_LogTextblock("Settings data has been reset to default.");
             }
         }
@@ -1040,7 +1041,7 @@ namespace Echo
             try
             {
                 if (ParcentLoss_txtbox.Text == "")
-                    VM.UpDownIndicator = 0;
+                    VM.UpDownIndicator = 90;
                 else
                     VM.UpDownIndicator = Convert.ToInt32(this.ParcentLoss_txtbox.Text);
             }
@@ -1072,7 +1073,7 @@ namespace Echo
             try
             {
                 if (RefreshInterval_txtbox.Text == "")
-                    VM.RefreshPeriod = 10;
+                    VM.RefreshPeriod = 6;
                 else
                     VM.RefreshPeriod = Convert.ToInt32(this.RefreshInterval_txtbox.Text);
             }
@@ -1088,7 +1089,7 @@ namespace Echo
             try
             {
                 if (PingSenseTime_txtbox.Text == "")
-                    VM.PingSensePeriodForSMS = 5;
+                    VM.PingSensePeriodForSMS = 4;
                 else
                     VM.PingSensePeriodForSMS = Convert.ToInt32(this.PingSenseTime_txtbox.Text);
             }
@@ -1272,6 +1273,11 @@ namespace Echo
             _InstructRun1.Text = "Instructions of using this app:";
             _InstructRun2.Text = Show_Instructions();
             Popup_Instruct.IsOpen = true;
+        }
+
+        private void Settings_Cancel_btn_Click(object sender, RoutedEventArgs e)
+        {
+            Popup_Settings.IsOpen = false;
         }
     }
 }

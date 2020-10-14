@@ -133,7 +133,7 @@ namespace Echo.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("All links are up now.")]
+        [global::System.Configuration.DefaultSettingValueAttribute("All PoPs are up now.")]
         public string AllLinksUp_txt {
             get {
                 return ((string)(this["AllLinksUp_txt"]));
