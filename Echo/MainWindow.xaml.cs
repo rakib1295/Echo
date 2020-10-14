@@ -1145,7 +1145,7 @@ namespace Echo
         {
             return
                 "\n  1. Please at first browse excel file from file menu, if 'Load Excel' button blinks. There should be two sheets in excel file: A) 1st sheet will contain router or switch info. B) 2nd sheet will contain phone number list for sending message." +
-                "\n  2. In first sheet of excel, there will be 4 columns: i)IP ii)Link name iii)Link type iv)Area. First row will be for column headers." +
+                "\n  2. In first sheet of excel, there will be 4 columns: i)IP address ii)PoP name iii)PoP type iv)Area. First row will be for column headers." +
                 "\n  3. In second sheet of excel, there will be phone numbers at first column. Again first row will be for column header. Phone numbers must be in 10 digits (starts with '1' not with '0')." +
                 "\n  4. After browsing the excel file, give username and password for Teletalk account in settings then click the 'Load Excel' button." +
                 "\n  5. If you need to adjust SMS time interval, refresh interval and ping sense period, do it from settings." +
@@ -1160,10 +1160,10 @@ namespace Echo
                 "\n  14. Each log data will be saved to this directory:- C:\\Users\\Public\\" + VM.Title + " Log" +
                 "\n  15. You can click on column name to sort by ascending or descending." +
                 "\n  16. You can search any data from the list by writing any search entry at search box. At first select from 'Search by' by which you want to search." +
-                "\n  17. Add text in 'All links up' message box in settings, which will be the message if all links are up." +
-                "\n  19. You can stop sending SMS when all nodes are up by unchecking 'Send SMS even all nodes are up' at SMS Settings." +
-                "\n  20. You can stop sending SMS for a particular link temporarily. To do this, double click on a link and disable its SMS." +
-                "\n  21. Database Connection should be connected properly. In MySQL database, there should be two tables: a) CurrentDownNodes, b) Nodes_Status. These should have proper fields. Contact administrator to change any field manually.";
+                "\n  17. Add text in 'All PoPs up' message box in settings, which will be the message if all PoPs are up." +
+                "\n  19. You can stop sending SMS when all PoPs are up by unchecking 'Send SMS even all PoPs are up' at SMS Settings." +
+                "\n  20. You can stop sending SMS for a particular PoP temporarily. To do this, double click on a PoP and disable its SMS." +
+                "\n  21. Database Connection should be connected properly. In MySQL database, there should be two tables: a) CurrentDownPoPs, b) PoP_Status. These should have proper fields. Contact administrator to change any field manually.";
         }
 
 

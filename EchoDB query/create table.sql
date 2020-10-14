@@ -1,4 +1,4 @@
-CREATE TABLE CurrentDownNodes (
+CREATE TABLE CurrentDownPoPs (
     IPAddress varchar(15),
     Name varchar(100),
     Area varchar(50),

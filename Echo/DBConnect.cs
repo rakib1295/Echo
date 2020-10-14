@@ -85,7 +85,7 @@ namespace Echo
 
         public int SearchinCurrentDownNodes(string IPaddress)
         {
-            string query = "select count(*) from CurrentDownNodes where IPAddress = '" + IPaddress + "'";
+            string query = "select count(*) from CurrentDownPoPs where IPAddress = '" + IPaddress + "'";
 
             int Count = -1;
 
@@ -113,7 +113,7 @@ namespace Echo
         {
             int count = -1;
 
-            string query = "INSERT INTO CurrentDownNodes (IPAddress, Name, Area, DownTime) VALUES('"+ IPaddress + "', '" + 
+            string query = "INSERT INTO CurrentDownPoPs (IPAddress, Name, Area, DownTime) VALUES('" + IPaddress + "', '" + 
                 Name + "', '" + Area + "', '" + DownTime + "')";
 
             //open connection
@@ -129,7 +129,7 @@ namespace Echo
                 }
                 catch (MySqlException ex)
                 {
-                    MessageBox.Show(ex.Message);
+                    MessageBox.Show(ex.Message, Title, MessageBoxButton.OK, MessageBoxImage.Error);
                 }
 
                 //close connection
@@ -145,7 +145,7 @@ namespace Echo
             string query = "INSERT INTO PoP_Status " +
                 "(IPAddress, Name, Area, DownTime, UpTime, DownDuration_ddhhmm, Down_TotalHour, Down_Min, Month_Cycle, Date_Cycle) " +
                 "VALUES('" + IPaddress + "', '" + Name + "','" + Area + "', '" + downtime + "','" + uptime + "', '" 
-                + DownDuration_ddhhmm + "','" + Totalhour + "', '" + min + "','" + monthCycle + "', '" + dateCycle + "')";
+                + DownDuration_ddhhmm + "', '" + Totalhour + "', '" + min + "', '" + monthCycle + "', '" + dateCycle + "')";
 
             //open connection
             if (this.OpenConnection() == true)
@@ -160,7 +160,7 @@ namespace Echo
                 }
                 catch (MySqlException ex)
                 {
-                    MessageBox.Show(ex.Message);
+                    MessageBox.Show(ex.Message, Title, MessageBoxButton.OK, MessageBoxImage.Error);
                 }
 
                 //close connection
@@ -196,7 +196,7 @@ namespace Echo
         //Select statement
         public string SelectDownTimefromDownTable(string IPaddress)
         {
-            string query = "select DownTime from CurrentDownNodes where IPAddress = '" + IPaddress + "'";
+            string query = "select DownTime from CurrentDownPoPs where IPAddress = '" + IPaddress + "'";
 
             //Create a list to store the result
             string data = "";
@@ -232,7 +232,7 @@ namespace Echo
 
         public void DeletefromDownTable(string IPaddress)
         {
-            string query = "DELETE FROM CurrentDownNodes where IPAddress = '" + IPaddress + "'";
+            string query = "DELETE FROM CurrentDownPoPs where IPAddress = '" + IPaddress + "'";
 
             if (this.OpenConnection() == true)
             {
@@ -244,7 +244,7 @@ namespace Echo
 
         public List<string> SelectDownNodes()
         {
-            string query = "select IPAddress from CurrentDownNodes";
+            string query = "select IPAddress from CurrentDownPoPs";
 
             //Create a list to store the result
             List<string> list = new List<string>();
