@@ -509,6 +509,14 @@ namespace Echo
                 Dispatcher.BeginInvoke((Action)(() =>
                 {
                     log_textblock.Text = "";
+                    if(DateTime.Now.Month == 12)
+                    {
+                        MyWipedText.Visibility = Visibility.Visible;
+                    }
+                    else
+                    {
+                        MyWipedText.Visibility = Visibility.Collapsed;
+                    }
                 }));
             }
         }

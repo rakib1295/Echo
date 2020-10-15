@@ -61,35 +61,59 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="60"/>
         </Grid.RowDefinitions>
-        <Menu Grid.Row="0" Background="SkyBlue">
-            <MenuItem Header="_File">
-                <MenuItem x:Name="SelectFile_function" Header="_Select Excel File"  Click="SelectFile_function_Click_1">
-                    <MenuItem.Icon>
-                        <Image Source="/Images/xlsx_icon.ico" Height="20" Width="auto"/>
-                    </MenuItem.Icon>
+        <Grid Background="SkyBlue">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Menu Grid.Column="0" Background="SkyBlue">
+                <MenuItem Header="_File">
+                    <MenuItem x:Name="SelectFile_function" Header="_Select Excel File"  Click="SelectFile_function_Click_1">
+                        <MenuItem.Icon>
+                            <Image Source="/Images/xlsx_icon.ico" Height="20" Width="auto"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <Separator/>
+                    <MenuItem x:Name="exit_function" Header="_Exit" Click="exit_function_Click_1"/>
                 </MenuItem>
-                <Separator/>
-                <MenuItem x:Name="exit_function" Header="_Exit" Click="exit_function_Click_1"/>
-            </MenuItem>
-            <MenuItem Header="_Tools">
-                <MenuItem x:Name="Settings_function" Header="_Settings" Click="Settings_function_Click_1">
-                    <MenuItem.Icon>
-                        <Image Source="/Images/settings_icon.ico" Height="15" Width="auto"/>
-                    </MenuItem.Icon>
+                <MenuItem Header="_Tools">
+                    <MenuItem x:Name="Settings_function" Header="_Settings" Click="Settings_function_Click_1">
+                        <MenuItem.Icon>
+                            <Image Source="/Images/settings_icon.ico" Height="15" Width="auto"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
                 </MenuItem>
-            </MenuItem>
-            <MenuItem Header="_Database Connection">
-                <MenuItem x:Name="DB_Connection" Header="_Configure MySQL" Click="DB_Connect_function_Click_1">
-                    <MenuItem.Icon>
-                        <Image Source="/Images/dbsettingsicon.ico" Height="15" Width="auto"/>
-                    </MenuItem.Icon>
+                <MenuItem Header="_Database Connection">
+                    <MenuItem x:Name="DB_Connection" Header="_Configure MySQL" Click="DB_Connect_function_Click_1">
+                        <MenuItem.Icon>
+                            <Image Source="/Images/dbsettingsicon.ico" Height="15" Width="auto"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
                 </MenuItem>
-            </MenuItem>
-            <MenuItem Header="_Help">
-                <MenuItem Header="_View Instructions" Click="MenuItem_Help_Click">
+                <MenuItem Header="_Help">
+                    <MenuItem Header="_View Instructions" Click="MenuItem_Help_Click">
+                    </MenuItem>
                 </MenuItem>
-            </MenuItem>
-        </Menu>
+            </Menu>
+            <TextBlock Grid.Column="1" Name="MyWipedText" Visibility="Collapsed" Width="800" FontWeight="Bold" Foreground="Maroon">
+  Create partition on MySQL Database Table for New Year
+  <!-- Animates the text block's width. -->
+                <TextBlock.Triggers>
+                    <EventTrigger RoutedEvent="TextBlock.Loaded">
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation
+            Storyboard.TargetName="MyWipedText" 
+            Storyboard.TargetProperty="(TextBlock.Width)"
+            To="0.0" Duration="0:0:5" 
+             AutoReverse="True" RepeatBehavior="Forever"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger>
+                </TextBlock.Triggers>
+            </TextBlock>
+        </Grid>
+
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
@@ -107,7 +131,7 @@
                     <RowDefinition Height="50"/>
                 </Grid.RowDefinitions>
                 <StackPanel Grid.Row="0" Orientation="Horizontal">
-                    <TextBlock x:Name="textblock2" TextWrapping="Wrap" Text="Current time: " FontWeight="Bold" VerticalAlignment="Top" Margin="5,0"/>
+                    <TextBlock TextWrapping="Wrap" Text="Current time: " FontWeight="Bold" VerticalAlignment="Top" Margin="5,0"/>
                     <TextBlock x:Name="clock_textblock" HorizontalAlignment="Left" TextWrapping="Wrap" Text="Clock" VerticalAlignment="Top" Width="auto" Margin="5,0"/>
                 </StackPanel>
                 <Image Grid.Row="1" x:Name="logo_img" Source="Images/BTCL-logo2.png"  HorizontalAlignment="Center"  VerticalAlignment="Top" />

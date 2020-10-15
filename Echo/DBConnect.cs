@@ -143,9 +143,9 @@ namespace Echo
         {
             int count = -1;
             string query = "INSERT INTO PoP_Status " +
-                "(IPAddress, Name, Area, DownTime, UpTime, DownDuration_ddhhmm, Down_TotalHour, Down_Min, Month_Cycle, Date_Cycle) " +
-                "VALUES('" + IPaddress + "', '" + Name + "','" + Area + "', '" + downtime + "','" + uptime + "', '" 
-                + DownDuration_ddhhmm + "', '" + Totalhour + "', '" + min + "', '" + monthCycle + "', '" + dateCycle + "')";
+                "(Month_Cycle, Date_Cycle, IPAddress, Name, Area, DownTime, UpTime, DownDuration_ddhhmm, Down_TotalHour, Down_Min) " +
+                "VALUES('" + monthCycle + "', '" + dateCycle + "', '" + IPaddress + "', '" + Name + "','" + Area + "', '" + downtime +
+                "','" + uptime + "', '" + DownDuration_ddhhmm + "', '" + Totalhour + "', '" + min + "')";
 
             //open connection
             if (this.OpenConnection() == true)

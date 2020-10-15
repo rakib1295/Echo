@@ -673,7 +673,10 @@ namespace Echo
                 }
                 else
                 {
-                    DB.DeletefromDownTable(item);
+                    lock (DB)
+                    {
+                        DB.DeletefromDownTable(item);
+                    }
                 }
             }
 
@@ -681,7 +684,7 @@ namespace Echo
             {
                 if (UPNodesList.Count > 0)
                 {
-                    InsertDBAsync();
+                    await InsertDBAsync();
                 }
                 RunningDBSync = false;
                 LogViewer = "Completed MySQL Database sync in DB side.";
@@ -973,7 +976,7 @@ namespace Echo
 
 
 
-        private void SMSFunction()
+        private async void SMSFunction()
         {
             int downnodescount = NodesList.Where(s => (s.Status == "Down" || s.Status == "Unknown")).ToList<Entity>().Count;
             if (downnodescount != NodesList.Count)
@@ -983,7 +986,7 @@ namespace Echo
                 SMSContentString_downNodes = BuildSMSContent_DownNodes();
                 SMSContentString_UpNodes = BuildSMSContent_UpNodes();
 
-                Task.Run(() => InsertDBAsync());
+                await Task.Run(() => InsertDBAsync());
                 SMSTrigger(SMSContentString_downNodes, SMSContentString_UpNodes);
 
             }
@@ -1451,8 +1454,8 @@ namespace Echo
         {
             return Task.Run(() => LoadExcelData());
         }
-
-        void LoadExcelData()
+        
+        async void LoadExcelData()
         {
             UILoadingAnimation = true; //for logo
             var _nodelist = this.NodesList;
@@ -1488,7 +1491,7 @@ namespace Echo
 
                 UILoadingAnimation = false; //for logo
 
-                Task.Run(()=> SyncDBAsync());
+                await Task.Run(()=> SyncDBAsync());
 
                 Thread.Sleep(5000);
                 RunPingFunctionality = true;
@@ -1810,7 +1813,7 @@ namespace Echo
             }
         }
 
-        private void NetCheckingTimer_Tick(object sender, System.Timers.ElapsedEventArgs e)
+        private async void NetCheckingTimer_Tick(object sender, System.Timers.ElapsedEventArgs e)
         {
             if (NetworkInterface.GetIsNetworkAvailable())
             {
@@ -1818,7 +1821,7 @@ namespace Echo
                 NetCheckingTimer.Stop();
                 if(RunningDBSync)
                 {
-                    Task.Run(() => SyncDBAsync());
+                    await Task.Run(() => SyncDBAsync());
                 }
 
                 LogViewer = "Network connection is OK now.";
