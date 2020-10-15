@@ -28,7 +28,8 @@ namespace Echo
         public String Message_Header = "";
         public String Message_Footer = "";
         public String AllLinksUpMessage = "";
-        public bool SMSActive = true;
+        public bool RepeatitiveSMSActive = true;
+        public bool SMS_ON = true;
         public bool SMSEvenAllUp = true;
         public String SMS_Server = "";
         public String Title = "";
@@ -540,7 +541,7 @@ namespace Echo
 
             if(inserted_uptable != -1)
             {
-                LogViewer = "Number of rows inserted on UP node status table in DB: " + inserted_uptable;
+                LogViewer = "Number of rows inserted on UP node Status table in DB: " + inserted_uptable;
                 Write_logFile(LogViewer);
                 UPNodesList.Clear();
             }
@@ -637,7 +638,7 @@ namespace Echo
             LogViewer = "Syncing MySQL Database......";
             Write_logFile(LogViewer);
             RunningDBSync = true;
-            int status = 0;
+            int Status = 0;
             List<string> down_ip_list_fromDB = new List<string>();
             lock (DB)
             {
@@ -652,21 +653,21 @@ namespace Echo
                 if (ip_list.Contains(item))
                 {
                     int i = 0;
-                    while(status != -1)
+                    while(Status != -1)
                     {
-                        status = await TryToPingNodesAync(item);
-                        if (status == 1) break;
+                        Status = await TryToPingNodesAync(item);
+                        if (Status == 1) break;
                         i++;
                         if (i == 4) break;
                     }
 
-                    if(status == 1)
+                    if(Status == 1)
                     {
                         NodesList.FirstOrDefault(s => (s.IPAddress == item)).UpTime = DateTime.Now;
                         NodesList.FirstOrDefault(s => (s.IPAddress == item)).DownTime = null;
                         UPNodesList.Add(NodesList.FirstOrDefault(s => (s.IPAddress == item)));
                     }
-                    else if(status == -1)
+                    else if(Status == -1)
                     {
                         break;
                     }
@@ -680,7 +681,7 @@ namespace Echo
                 }
             }
 
-            if(status != -1)
+            if(Status != -1)
             {
                 if (UPNodesList.Count > 0)
                 {
@@ -741,7 +742,7 @@ namespace Echo
             if (timeCounter == SMSInterval - PingSensePeriodForSMS) //reset before sms
             {
                 ResetStatus();
-                LogViewer = "Status of all nodes has been reset.";
+                LogViewer = "Status of all nodes refreshed.";
                 Write_logFile(LogViewer);
             }
 
@@ -750,10 +751,17 @@ namespace Echo
                 timeCounter = 0;
                 NextSMSTime = DateTime.Now.AddMinutes(SMSInterval).ToLongTimeString();
 
-                if (SMSActive)
+                if (RepeatitiveSMSActive)
                 {
                     this.RunPingFunctionality = false;
                     SMSThreadMethod();
+                }
+
+                if(!SMS_ON)
+                {
+                    DCount = 0;
+                    UCount = 0;
+                    timeCounter = 0;
                 }
             }
             else if (timeCounter % RefreshPeriod == 0) //reset each reset interval
@@ -862,25 +870,25 @@ namespace Echo
 
                 if(shouldsendSMS4down && !shouldsendSMS4up)
                 {
-                    LogViewer = "Firing SMS for node changing to down status.";
+                    LogViewer = "Firing SMS for node changing to down Status.";
                     Write_logFile(LogViewer);
                 }
                 else if(!shouldsendSMS4down && shouldsendSMS4up)
                 {
                     TempDownNodesList.Clear();
-                    LogViewer = "Firing SMS for node changing to up status.";
+                    LogViewer = "Firing SMS for node changing to up Status.";
                     
                     Write_logFile(LogViewer);
                 }
                 else if (shouldsendSMS4down && shouldsendSMS4up)
                 {
-                    LogViewer = "Firing SMS for both status changes for some nodes.";
+                    LogViewer = "Firing SMS for both Status changes for some nodes.";
                     Write_logFile(LogViewer);
                 }
                 else
                 {
                     TempDownNodesList.Clear();
-                    LogViewer = "SMS halted due to status reverse (fluctuation).";
+                    LogViewer = "SMS halted due to Status reverse (fluctuation).";
                     Write_logFile(LogViewer);
                 }
 
@@ -896,7 +904,7 @@ namespace Echo
             else
             {
                 LogViewer = "Please check internet connection.";
-                Write_logFile("Network down when firing SMS due to status change.");
+                Write_logFile("Network down when firing SMS due to Status change.");
             }
         }
 
@@ -987,8 +995,18 @@ namespace Echo
                 SMSContentString_UpNodes = BuildSMSContent_UpNodes();
 
                 await Task.Run(() => InsertDBAsync());
-                SMSTrigger(SMSContentString_downNodes, SMSContentString_UpNodes);
 
+                if(SMS_ON)
+                {
+                    SMSTrigger(SMSContentString_downNodes, SMSContentString_UpNodes);
+                }
+                else
+                {
+                    DCount = 0;
+                    UCount = 0;
+                    timeCounter = 0;
+                    this.RunPingFunctionality = true;
+                }
             }
             else
             {
@@ -1120,7 +1138,7 @@ namespace Echo
 
 
                     WebResponse response = request.GetResponse();
-                    // Display the status.
+                    // Display the Status.
                     //Console.WriteLine(((HttpWebResponse)response).StatusDescription);
                     // Get the stream containing content returned by the server.
                     Stream dataStream = response.GetResponseStream();
@@ -1193,7 +1211,7 @@ namespace Echo
 
                 
                 WebResponse response = request.GetResponse();
-                // Display the status.
+                // Display the Status.
                 //Console.WriteLine(((HttpWebResponse)response).StatusDescription);
                 // Get the stream containing content returned by the server.
                 Stream dataStream = response.GetResponseStream();
@@ -1631,7 +1649,7 @@ namespace Echo
 
         private async Task<int> TryToPingNodesAync(string ipaddress)
         {
-            int replystatus = -1;
+            int replyStatus = -1;
             Ping pingSender = new Ping();
             try
             {
@@ -1640,11 +1658,11 @@ namespace Echo
                     PingReply reply = await pingSender.SendPingAsync(ipaddress);
                     if(reply.Status == IPStatus.Success)
                     {
-                        replystatus = 1;
+                        replyStatus = 1;
                     }
                     else
                     {
-                        replystatus = 0;
+                        replyStatus = 0;
                     }
                 }
                 else
@@ -1666,14 +1684,14 @@ namespace Echo
             {
                 pingSender.Dispose();
             }
-            return replystatus;
+            return replyStatus;
         }
 
         private void TryToPingNodes()
         {
             while (RunPingFunctionality)
             {
-                Parallel.For(0, _nodeslist.Count, async (index, loopstate) =>
+                Parallel.For(0, _nodeslist.Count, async (index, loopStatus) =>
                 {
                     Ping pingSender = new Ping();
                     try
@@ -1738,7 +1756,7 @@ namespace Echo
                             }
                             else
                             {
-                                loopstate.Stop();
+                                loopStatus.Stop();
                                 return;
                             }
                         }

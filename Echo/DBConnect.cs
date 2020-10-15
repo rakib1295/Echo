@@ -169,7 +169,7 @@ namespace Echo
             return count;
         }
 
-        //Update statement
+        //Update Statusment
         //public void Update()
         //{
         //    string query = "UPDATE tableinfo SET name='Joe', age='22' WHERE name='John Smith'";
@@ -193,7 +193,7 @@ namespace Echo
         //}
 
 
-        //Select statement
+        //Select Statusment
         public string SelectDownTimefromDownTable(string IPaddress)
         {
             string query = "select DownTime from CurrentDownPoPs where IPAddress = '" + IPaddress + "'";
@@ -278,7 +278,7 @@ namespace Echo
             }
         }
 
-        //Select statement
+        //Select Statusment
         //public List<string>[] Select()
         //{
         //    string query = "SELECT * FROM tableinfo";

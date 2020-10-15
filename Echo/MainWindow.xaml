@@ -96,7 +96,7 @@
                 </MenuItem>
             </Menu>
             <TextBlock Grid.Column="1" Name="MyWipedText" Visibility="Collapsed" Width="800" FontWeight="Bold" Foreground="Maroon">
-  Create partition on MySQL Database Table for New Year
+  Create new partition on MySQL Database Table for New Year
   <!-- Animates the text block's width. -->
                 <TextBlock.Triggers>
                     <EventTrigger RoutedEvent="TextBlock.Loaded">
@@ -151,7 +151,7 @@
                     <Button x:Name="Ping_btn" IsEnabled="False" Grid.Row="1" Grid.Column="0" Content="Start Ping" MouseEnter="PingBtn_MouseEnter_1"  MouseLeave="PingBtn_MouseLeave_1" Click="Ping_btn_Click" Margin="5,5"/>
                     <Button x:Name="Reset_btn" IsEnabled="False" Grid.Row="1" Grid.Column="1" Content="Refresh Status" MouseEnter="Reset_MouseEnter_1"  MouseLeave="Reset_MouseLeave_1" Click="Reset_btn_Click_1" Margin="5,5"/>
                     <Button x:Name="Clear_btn" Grid.Row="0" Grid.Column="2" Content="Clear Logs" MouseEnter="ClearLog_MouseEnter_1"  MouseLeave="ClearLog_MouseLeave_1" Click="ClearLog_btn_Click_1" Margin="5,5"/>
-
+                    <Button x:Name="StopSMS_btn" IsEnabled="False" Grid.Row="1" Grid.Column="2" Content="Stop SMS" MouseEnter="StopSMS_btn_MouseEnter"  MouseLeave="StopSMS_btn_MouseLeave" Click="StopSMS_btn_Click" Margin="5,5"/>
                 </Grid>
                 <ScrollViewer Grid.Row="3" x:Name="_scrollbar_log" VerticalScrollBarVisibility="Auto" Margin="5,10,5,0">
                     <TextBlock x:Name="log_textblock"  HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Top" Background="{DynamicResource {x:Static SystemColors.InfoBrushKey}}"/>
@@ -284,7 +284,7 @@
                             <RowDefinition Height="27"/>
                         </Grid.RowDefinitions>
                         <TextBlock Grid.Row="0" Text="Teletalk Bulksms Account Settings" FontWeight="Bold"/>
-                        <CheckBox Grid.Row="1" x:Name="SMS_Checkbox" IsChecked="True"  Content="If uncheck, SMS active only when status will be changed" Checked="SMS_Checkbox_Checked_1" Unchecked="SMS_Checkbox_Unchecked_1"/>
+                        <CheckBox Grid.Row="1" x:Name="Repeatitive_SMS_Checkbox" IsChecked="True"  Content="If uncheck, SMS active only when Status will be changed" Checked="SMS_Checkbox_Checked_1" Unchecked="SMS_Checkbox_Unchecked_1"/>
                         <Grid Grid.Row="2">
                             <Grid.RowDefinitions>
                                 <RowDefinition/>
@@ -370,7 +370,7 @@
                                 <ColumnDefinition/>
                                 <ColumnDefinition Width="40"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" FontSize="12" TextWrapping="Wrap" Text="Period of sensing ping status before SMS, it must be less than SMS interval (in Minutes):" Margin="5,0" />
+                            <TextBlock Grid.Column="0" FontSize="12" TextWrapping="Wrap" Text="Period of sensing ping Status before SMS, it must be less than SMS interval (in Minutes):" Margin="5,0" />
                             <TextBox Grid.Column="1" x:Name="PingSenseTime_txtbox" TextChanged="PingSenseTime_txtbox_TextChanged_1"  Margin="5,0"  Height="25"/>
                         </Grid>
                         <Grid Grid.Row="4">

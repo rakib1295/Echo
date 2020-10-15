@@ -99,13 +99,13 @@ namespace Echo
 
         public String LastPingStatus { get; set; } = "Unknown";
 
-        private String _status = "Unknown";
+        private String _Status = "Unknown";
         public String Status
         {
-            get { return _status; }
+            get { return _Status; }
             set
             {
-                _status = value;
+                _Status = value;
                 // Call OnPropertyChanged whenever the property is updated
                 OnPropertyChanged("Status");
             }
