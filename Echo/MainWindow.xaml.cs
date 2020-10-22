@@ -51,6 +51,8 @@ namespace Echo
             Browse_Btn_Animation();
             DispatcherTimerClock();
             VM.PropertyChanged += View_PropertyChanged;
+            Application.Current.MainWindow.Closing += MainWindow_Closing;
+            Application.Current.MainWindow.Loaded += MainWindow_Loaded;
 
             DispatcherTimerLogoAnimation();   //for logo
 
@@ -66,30 +68,10 @@ namespace Echo
             view.Filter = UserFilter;
             VM.Title = this.Title;
 
-            //IPListView.SelectionChanged += IPListView_SelectionChanged;
-
-            //Stream iconStream = Application.GetResourceStream(new Uri("pack://application:,,,/echo_crop_5qo_icon.ico")).Stream; /////tray
-            //IconInstance.Icon = new System.Drawing.Icon(iconStream);
-
-            //IconInstance.Visible = true;
-            //this.Closing += MainWindow_Closing;
-            Application.Current.MainWindow.Closing += MainWindow_Closing;
-            Application.Current.MainWindow.Loaded += MainWindow_Loaded;
-
 #if !DEBUG
             versionNumber.Text = "Version: " + ApplicationDeployment.CurrentDeployment.CurrentVersion.ToString(4);
 #endif
-            //IconInstance.Text = "Echo";
 
-
-            //IconInstance.DoubleClick +=
-            //    delegate(object sender, EventArgs args)
-            //    {
-            //        this.Show();
-            //        this.WindowStatus = WindowStatus.Maximized;
-            //    };
-
-            //IconInstance.MouseClick += ni_MouseClick;
         }
 
         int _popupcounter;
@@ -160,7 +142,7 @@ namespace Echo
                 _NodeSMSStatus.Text = "Ping Only";
                 _NodeSMSStatus.Foreground = Brushes.Red;
                 Edit_btn.Content = "Enable SMS for this PoP ->";
-                Show_LogTextblock(_itm.Area + " PoP has been configured as " + _itm.Action_Type + ". No SMS will be sent for this PoP.");
+                Show_LogTextblock(_itm.Name + " has been configured as " + _itm.Action_Type + ". No SMS will be sent for this PoP.");
             }
             else
             {
@@ -168,7 +150,7 @@ namespace Echo
                 _NodeSMSStatus.Text = "SMS Enabled";
                 _NodeSMSStatus.Foreground = Brushes.Green;
                 Edit_btn.Content = "Temporarily disable SMS for this PoP?";
-                Show_LogTextblock(_itm.Area + " PoP has been configured as " + _itm.Action_Type + ".");
+                Show_LogTextblock(_itm.Name + " has been configured as " + _itm.Action_Type + ".");
             }
         }
 
@@ -191,25 +173,25 @@ namespace Echo
 
         private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e) //tary
         {
-            bool flag = true;
+            bool runflag = true;
             if (VM.ExcelLoaded)
             {
-                if (VM.RunPingFunctionality == false)
+                if (!VM.RunPingFunctionality)
                 {
-                    flag = false;
+                    runflag = false;
                 }
                 VM.RunPingFunctionality = false;
             }
             if (MessageBox.Show("Do you really want to close the application?", VM.Title, MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.No)
             {
                 e.Cancel = true;
-                if (VM.ExcelLoaded && flag == true)
+                if (VM.ExcelLoaded && runflag)
                     VM.RunPingFunctionality = true;
             }
             else if (MessageBox.Show("Are you sure?", VM.Title, MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.No)
             {
                 e.Cancel = true;
-                if (VM.ExcelLoaded && flag == true)
+                if (VM.ExcelLoaded && runflag)
                     VM.RunPingFunctionality = true;
             }
             else
@@ -279,8 +261,8 @@ namespace Echo
             {
                 Repeatitive_SMS_Checkbox.IsChecked = true;
                 ParcentLoss_txtbox.Text = "90";
-                SMSInterval_txtbox.Text = "120";
-                RefreshInterval_txtbox.Text = "10";
+                SMSInterval_txtbox.Text = "180";
+                RefreshInterval_txtbox.Text = "7";
                 PingSenseTime_txtbox.Text = "5";
                 MsgHeader_txtbox.Text = "Dear Sir,";
                 MsgFooter_txtbox.Text = "NOC\nMoghbazar\nT-0258312345";
@@ -289,46 +271,6 @@ namespace Echo
                 Show_LogTextblock("Settings data has been reset to default.");
             }
         }
-
-
-
-        //private void ni_MouseClick(object sender, System.Windows.Forms.MouseEventArgs e)
-        //{
-        //    if (e.Button == System.Windows.Forms.MouseButtons.Right)
-        //    {
-        //        ContextMenu menu = (ContextMenu)this.FindResource("NotifierContextMenu");
-
-        //        menu.IsOpen = true;
-        //    }
-        //}
-
-        //private void Menu_Open(object sender, RoutedEventArgs e)
-        //{
-        //    this.Show();
-        //    this.Activate();
-
-        //    this.WindowStatus = WindowStatus.Maximized;
-        //}
-
-
-        //private void Menu_Close(object sender, RoutedEventArgs e)
-        //{
-        //    if (MessageBox.Show("Do you really want to close Echo?", "Warning", MessageBoxButton.YesNo,MessageBoxImage.Warning) == MessageBoxResult.Yes)
-        //    {
-        //        IconInstance.Dispose();
-
-        //        Application.Current.Shutdown();
-        //    }
-        //}
-
-        //protected override void OnClosing(CancelEventArgs e)
-        //{
-        //    if (MessageBox.Show("Do you really want to close Echo?", "Warning", MessageBoxButton.YesNo) == MessageBoxResult.No)
-        //    {
-        //        e.Cancel = true;
-        //    }
-        //    base.OnClosing(e);
-        //}
 
         private void View_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
@@ -383,7 +325,7 @@ namespace Echo
                     }));
                 }
             }
-            else if (e.PropertyName == "NextSMSTime" && VM.RepeatitiveSMSActive && VM.SMS_ON)
+            else if (e.PropertyName == "NextSMSTime" && VM.RepetitiveSMSActive)
             {
                 Dispatcher.BeginInvoke((Action)(() =>
                 {
@@ -420,6 +362,7 @@ namespace Echo
         void DispatcherTimerLogoAnimation()
         {
             AnimationTimer.Interval = TimeSpan.FromMilliseconds(250);
+            AnimationTimer.Tick -= timer_TickLogoAnimation;
             AnimationTimer.Tick += timer_TickLogoAnimation;
         }
 
@@ -485,6 +428,7 @@ namespace Echo
         {
             DispatcherTimer timer = new DispatcherTimer();
             timer.Interval = TimeSpan.FromSeconds(1);
+            timer.Tick -= timer_Tick;
             timer.Tick += timer_Tick;
             timer.Start();
         }
@@ -830,7 +774,7 @@ namespace Echo
         {
             if (VM.Destination_Excel_url != "")
             {
-                if (VM.RepeatitiveSMSActive)
+                if (VM.RepetitiveSMSActive)
                 {
                     if (this.user_name.Text == "" || this.acc_psw.Password == "")
                     {
@@ -907,6 +851,7 @@ namespace Echo
                         Ping_btn.Content = "Start Ping";
                         Reset_btn.IsEnabled = false;
                         StopSMS_btn.IsEnabled = false;
+                        Ping_btn.Background = new SolidColorBrush(Colors.Red);
 
                         if (VM.SMS_ON)
                             Send_btn.IsEnabled = false;
@@ -920,6 +865,7 @@ namespace Echo
                         Ping_btn.Content = "Pause System";
                         Reset_btn.IsEnabled = true;                        
                         StopSMS_btn.IsEnabled = true;
+                        Ping_btn.ClearValue(Button.BackgroundProperty);
 
                         if (VM.SMS_ON)
                             Send_btn.IsEnabled = true;
@@ -997,7 +943,8 @@ namespace Echo
                 {
                     if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
                     {
-                        VM.RunPingFunctionality = false;
+                        if (VM.RunPingFunctionality)
+                            VM.RunPingFunctionality = false;
                         VM.SMSThreadMethod();
                     }
                     else
@@ -1145,7 +1092,7 @@ namespace Echo
 
         private void SMS_Checkbox_Checked_1(object sender, RoutedEventArgs e)
         {
-            VM.RepeatitiveSMSActive = true;
+            VM.RepetitiveSMSActive = true;
             if (user_name != null)
             {
                 SMSIfAllUp_Checkbox.IsEnabled = true;
@@ -1158,7 +1105,7 @@ namespace Echo
 
         private void SMS_Checkbox_Unchecked_1(object sender, RoutedEventArgs e)
         {
-            VM.RepeatitiveSMSActive = false;
+            VM.RepetitiveSMSActive = false;
             if (user_name != null)
             {
                 SMSIfAllUp_Checkbox.IsEnabled = false;
@@ -1342,6 +1289,7 @@ namespace Echo
             {
                 if (MessageBox.Show("Do you want to stop SMS Service?", VM.Title, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                 {
+                    StopSMS_btn.Background = new SolidColorBrush(Colors.Red);
                     VM.SMS_ON = false;
                     Show_LogTextblock("SMS service stopped. Only Ping and DB Sync running.");
                     StopSMS_btn.Content = "Start SMS";
@@ -1359,7 +1307,7 @@ namespace Echo
                     AllLinksUp_txtbox.IsEnabled = false;
                     Send_btn.IsEnabled = false;
                     WebReply_textblock.Visibility = Visibility.Collapsed;
-                    VM.RepeatitiveSMSActive = false;
+                    VM.RepetitiveSMSActive = false;
                 }
             }
             else
@@ -1368,6 +1316,7 @@ namespace Echo
                 {
                     if (user_name.Text != "")
                     {
+                        StopSMS_btn.ClearValue(Button.BackgroundProperty);
                         VM.SMS_ON = true;
                         Show_LogTextblock("SMS service Started.");
                         StopSMS_btn.Content = "Stop SMS";
@@ -1386,7 +1335,7 @@ namespace Echo
                         WebReply_textblock.Visibility = Visibility.Visible;
                         Send_btn.IsEnabled = true;
                         if (Repeatitive_SMS_Checkbox.IsChecked == true)
-                            VM.RepeatitiveSMSActive = true;
+                            VM.RepetitiveSMSActive = true;
                     }
                     else
                     {

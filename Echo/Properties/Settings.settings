@@ -15,13 +15,13 @@
       <Value Profile="(Default)">90</Value>
     </Setting>
     <Setting Name="SMS_Interval" Type="System.String" Scope="User">
-      <Value Profile="(Default)">120</Value>
+      <Value Profile="(Default)">180</Value>
     </Setting>
     <Setting Name="Refresh_Interval" Type="System.String" Scope="User">
-      <Value Profile="(Default)">5</Value>
+      <Value Profile="(Default)">7</Value>
     </Setting>
     <Setting Name="PingSenseTime" Type="System.String" Scope="User">
-      <Value Profile="(Default)">4</Value>
+      <Value Profile="(Default)">5</Value>
     </Setting>
     <Setting Name="MsgHeader" Type="System.String" Scope="User">
       <Value Profile="(Default)">Dear Sir,</Value>

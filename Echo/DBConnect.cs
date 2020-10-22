@@ -4,7 +4,6 @@ using System.Text;
 using System.Windows;
 using System.Diagnostics;
 using System.IO;
-//Add MySql Library
 using MySql.Data.MySqlClient;
 
 namespace Echo
