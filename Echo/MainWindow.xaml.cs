@@ -206,12 +206,11 @@ namespace Echo
 
         private void SaveSettings()
         {
-            Properties.Settings.Default.SMS_Checkbox_Data = (bool)Repeatitive_SMS_Checkbox.IsChecked;
+            Properties.Settings.Default.SMS_Checkbox_Data = (bool)Repetitive_SMS_Checkbox.IsChecked;
             Properties.Settings.Default.User_Name_String = user_name.Text;
             Properties.Settings.Default.Password_String = acc_psw.Password;
             Properties.Settings.Default.ParcentLoss = ParcentLoss_txtbox.Text;
             Properties.Settings.Default.SMS_Interval = SMSInterval_txtbox.Text;
-            Properties.Settings.Default.Refresh_Interval = RefreshInterval_txtbox.Text;
             Properties.Settings.Default.PingSenseTime = PingSenseTime_txtbox.Text;
             Properties.Settings.Default.MsgHeader = MsgHeader_txtbox.Text;
             Properties.Settings.Default.MsgFooter = MsgFooter_txtbox.Text;
@@ -234,12 +233,11 @@ namespace Echo
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            Repeatitive_SMS_Checkbox.IsChecked = Properties.Settings.Default.SMS_Checkbox_Data;
+            Repetitive_SMS_Checkbox.IsChecked = Properties.Settings.Default.SMS_Checkbox_Data;
             user_name.Text = Properties.Settings.Default.User_Name_String;
             acc_psw.Password = Properties.Settings.Default.Password_String;
             ParcentLoss_txtbox.Text = Properties.Settings.Default.ParcentLoss;
             SMSInterval_txtbox.Text = Properties.Settings.Default.SMS_Interval;
-            RefreshInterval_txtbox.Text = Properties.Settings.Default.Refresh_Interval;
             PingSenseTime_txtbox.Text = Properties.Settings.Default.PingSenseTime;
             MsgHeader_txtbox.Text = Properties.Settings.Default.MsgHeader;
             MsgFooter_txtbox.Text = Properties.Settings.Default.MsgFooter;
@@ -259,10 +257,9 @@ namespace Echo
             Popup_Settings.IsOpen = true;
             if (MessageBox.Show("Do you want to reset PoP Status settings data to default value?", VM.Title, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             {
-                Repeatitive_SMS_Checkbox.IsChecked = true;
+                Repetitive_SMS_Checkbox.IsChecked = true;
                 ParcentLoss_txtbox.Text = "90";
                 SMSInterval_txtbox.Text = "180";
-                RefreshInterval_txtbox.Text = "7";
                 PingSenseTime_txtbox.Text = "5";
                 MsgHeader_txtbox.Text = "Dear Sir,";
                 MsgFooter_txtbox.Text = "NOC\nMoghbazar\nT-0258312345";
@@ -292,7 +289,7 @@ namespace Echo
                 {
                     if (VM.ExcelLoaded)
                     {
-                        LoadExcel_btn.ClearValue(Button.BackgroundProperty);
+                        LoadExcel_btn.ClearValue(BackgroundProperty);
                         Ping_btn.IsEnabled = true;
                         Ping_btn.Content = "Pause System";
                         StopSMS_btn.IsEnabled = true;
@@ -374,21 +371,21 @@ namespace Echo
                 {
                     if (EchoLogo1.Visibility == Visibility.Visible)
                     {
-                        EchoLogo1.Visibility = Visibility.Collapsed;
+                        EchoLogo1.Visibility = Visibility.Hidden;
                         EchoLogo2.Visibility = Visibility.Visible;
-                        EchoLogo3.Visibility = Visibility.Collapsed;
+                        EchoLogo3.Visibility = Visibility.Hidden;
                     }
                     else if (EchoLogo2.Visibility == Visibility.Visible)
                     {
-                        EchoLogo1.Visibility = Visibility.Collapsed;
-                        EchoLogo2.Visibility = Visibility.Collapsed;
+                        EchoLogo1.Visibility = Visibility.Hidden;
+                        EchoLogo2.Visibility = Visibility.Hidden;
                         EchoLogo3.Visibility = Visibility.Visible;
                     }
                     else
                     {
                         EchoLogo1.Visibility = Visibility.Visible;
-                        EchoLogo2.Visibility = Visibility.Collapsed;
-                        EchoLogo3.Visibility = Visibility.Collapsed;
+                        EchoLogo2.Visibility = Visibility.Hidden;
+                        EchoLogo3.Visibility = Visibility.Hidden;
                     }
                 }
                 else
@@ -863,9 +860,9 @@ namespace Echo
                     {
                         VM.RunPingFunctionality = true;
                         Ping_btn.Content = "Pause System";
-                        Reset_btn.IsEnabled = true;                        
+                        Reset_btn.IsEnabled = true;
                         StopSMS_btn.IsEnabled = true;
-                        Ping_btn.ClearValue(Button.BackgroundProperty);
+                        Ping_btn.ClearValue(BackgroundProperty);
 
                         if (VM.SMS_ON)
                             Send_btn.IsEnabled = true;
@@ -921,6 +918,7 @@ namespace Echo
                 Show_LogTextblock("Refresh button clicked.");
                 VM.Write_logFile("Refresh button clicked.");
                 VM.ResetStatus();
+                VM.LogViewer = "Status of all nodes refreshed.";
             }
         }
         private void ClearLog_btn_Click_1(object sender, RoutedEventArgs e)
@@ -1027,7 +1025,7 @@ namespace Echo
             try
             {
                 if (SMSInterval_txtbox.Text == "")
-                    VM.SMSInterval = 120;
+                    VM.SMSInterval = 180;
                 else
                     VM.SMSInterval = Convert.ToInt32(this.SMSInterval_txtbox.Text);
 
@@ -1035,22 +1033,6 @@ namespace Echo
                 {
                     NextSMSAlart_txtblk.Text = "Next SMS Time: Not calculated.";
                 }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message + " <" + ex.GetType().ToString() + ">", VM.Title, MessageBoxButton.OK, MessageBoxImage.Error);
-                VM.Write_logFile(ex.Message);
-            }
-        }
-
-        private void RefreshInterval_txtbox_TextChanged_1(object sender, TextChangedEventArgs e)
-        {
-            try
-            {
-                if (RefreshInterval_txtbox.Text == "")
-                    VM.RefreshPeriod = 6;
-                else
-                    VM.RefreshPeriod = Convert.ToInt32(this.RefreshInterval_txtbox.Text);
             }
             catch (Exception ex)
             {
@@ -1098,8 +1080,8 @@ namespace Echo
                 SMSIfAllUp_Checkbox.IsEnabled = true;
                 AllLinksUp_txtbox.IsEnabled = true;
                 SMSInterval_txtbox.IsEnabled = true;
-                Show_LogTextblock("Repeatitive SMS enabled.");
-                NextSMSAlart_txtblk.Text = "Next SMS Time: " + VM.NextSMSTime;
+                Show_LogTextblock("Repetitive SMS enabled.");
+                NextSMSAlart_txtblk.Text = "Next SMS Time: Not calculated.";
             }
         }
 
@@ -1111,8 +1093,8 @@ namespace Echo
                 SMSIfAllUp_Checkbox.IsEnabled = false;
                 AllLinksUp_txtbox.IsEnabled = false;
                 SMSInterval_txtbox.IsEnabled = false;
-                Show_LogTextblock("Repeatitive SMS is disabled. SMS will be sent only when Status will be changed.");
-                NextSMSAlart_txtblk.Text = "Repeatitive SMS disabled.";
+                Show_LogTextblock("Repetitive SMS is disabled. SMS will be sent only when Status will be changed.");
+                NextSMSAlart_txtblk.Text = "Repetitive SMS disabled.";
             }
         }
 
@@ -1123,13 +1105,13 @@ namespace Echo
                 "\n  2. In first sheet of excel, there will be 4 columns: i)IP address ii)PoP name iii)PoP type iv)Area. First row will be for column headers." +
                 "\n  3. In second sheet of excel, there will be phone numbers at first column. Again first row will be for column header. Phone numbers must be in 10 digits (starts with '1' not with '0')." +
                 "\n  4. After browsing the excel file, give username and password for Teletalk account in settings then click the 'Load Excel' button." +
-                "\n  5. If you need to adjust SMS time interval, refresh interval and ping sense period, do it from settings." +
+                "\n  5. If you need to adjust SMS time interval and refresh interval, do it from settings." +
                 "\n  6. You can add message header or footer from settings, but be careful about message size." +
                 "\n  7. You can adjust minimum packet loss value (in percent) from settings, which will indicate the node is down." +
                 "\n  8. SMS will be sent automatically after definite time interval if SMS active checkbox is selected. Otherwise it will send SMS when Status of any node is changed." +
                 "\n  9. If you need to send message manually, then click on 'Send SMS' button." +
                 "\n  10. If you need to pause ping, click on 'Pause Ping' button." +
-                "\n  11. Router or switch Status will be reset automatically. If you need to reset manually, then click 'Reset' button." +
+                "\n  11. Router or switch Status will be refreshed automatically. If you need to refresh manually, then click 'Refresh' button." +
                 "\n  12. After any change in excel file, click on 'Load Excel' button. But before that you need to pause the ping functionality." +
                 "\n  13. Next SMS time is shown at lower left corner of app." +
                 "\n  14. Each log data will be saved to this directory:- C:\\Users\\Public\\" + VM.Title + " Log" +
@@ -1296,7 +1278,7 @@ namespace Echo
                     NextSMSAlart_txtblk.Text = "SMS stopped.";
                     SMSInterval_txtbox.IsEnabled = false;
 
-                    Repeatitive_SMS_Checkbox.IsEnabled = false;
+                    Repetitive_SMS_Checkbox.IsEnabled = false;
                     MsgHeader_txtbox.IsEnabled = false;
                     MsgFooter_txtbox.IsEnabled = false;
                     AccTest_btn.IsEnabled = false;
@@ -1316,13 +1298,17 @@ namespace Echo
                 {
                     if (user_name.Text != "")
                     {
-                        StopSMS_btn.ClearValue(Button.BackgroundProperty);
+                        StopSMS_btn.ClearValue(BackgroundProperty);
                         VM.SMS_ON = true;
                         Show_LogTextblock("SMS service Started.");
                         StopSMS_btn.Content = "Stop SMS";
-                        NextSMSAlart_txtblk.Text = "Next SMS Time: " + VM.NextSMSTime;
 
-                        Repeatitive_SMS_Checkbox.IsEnabled = true;
+                        if (Repetitive_SMS_Checkbox.IsChecked == true)
+                            NextSMSAlart_txtblk.Text = "Next SMS Time: Not calculated.";
+                        else
+                            NextSMSAlart_txtblk.Text = "Repetitive SMS disabled.";
+
+                        Repetitive_SMS_Checkbox.IsEnabled = true;
                         MsgHeader_txtbox.IsEnabled = true;
                         MsgFooter_txtbox.IsEnabled = true;
                         AccTest_btn.IsEnabled = true;
@@ -1334,7 +1320,7 @@ namespace Echo
                         SMSInterval_txtbox.IsEnabled = true;
                         WebReply_textblock.Visibility = Visibility.Visible;
                         Send_btn.IsEnabled = true;
-                        if (Repeatitive_SMS_Checkbox.IsChecked == true)
+                        if (Repetitive_SMS_Checkbox.IsChecked == true)
                             VM.RepetitiveSMSActive = true;
                     }
                     else

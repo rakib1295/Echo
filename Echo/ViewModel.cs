@@ -253,18 +253,6 @@ namespace Echo
             }
         }
 
-        private bool _StartSMSFunctionality = false;
-        public bool StartSMSFunctionality
-        {
-            get { return _StartSMSFunctionality; }
-            set
-            {
-                _StartSMSFunctionality = value;
-                // Call OnPropertyChanged whenever the property is updated
-                OnPropertyChanged("StartSMSFunctionality");
-            }
-        }
-
 
         public String LogViewer
         {
@@ -385,45 +373,60 @@ namespace Echo
         private void TimerforAppLoading()
         {
             AppLoadingFlag = true;
-            AppLoadingTimer.Interval = PingSensePeriodForSMS * 60 * 1000;
+            AppLoadingTimer.Interval = 60000;
             AppLoadingTimer.AutoReset = true;
             AppLoadingTimer.Elapsed -= AppLoadingTimer_Tick;
             AppLoadingTimer.Elapsed += AppLoadingTimer_Tick;
             AppLoadingTimer.Start();
         }
 
+        int apploadingtimecounter = 0;
         private async void AppLoadingTimer_Tick(object sender, System.Timers.ElapsedEventArgs e)
         {
-            foreach (var item in NodesList)
+            apploadingtimecounter++;
+            if (apploadingtimecounter < PingSensePeriodForSMS)
+                return;
+
+            if (apploadingtimecounter >= PingSensePeriodForSMS)
             {
-                if (item.PingCount < 4) return;
-            }
-
-            AppLoadingFlag = false;
-
-            AppLoadingTimer.Stop();
-            LogViewer = "System is stable now.";
-            List<Entity> downlist = NodesList.Where(s => (s.Status == "Down")).ToList<Entity>();
-
-            DownNodesList.Clear();
-            foreach (var item in downlist)
-            {
-                item.DownTime = DateTime.Now;
-                item.UpTime = null;
-                int count = -1;
-                count = await SearchinDBDownListAsync(item);
-                if (count == 0)
+                foreach (var item in NodesList)
                 {
-                    DownNodesList.Add(item);
+                    if (item.PingCount < 4)
+                    {
+#if DEBUG
+                        LogViewer = "App loading returned due to ping count less than 4.";
+#endif
+                        Write_logFile("App loading returned due to ping count less than 4.");
+                        return;
+                    }
                 }
+
+                apploadingtimecounter = 0;
+                AppLoadingFlag = false;
+
+                AppLoadingTimer.Stop();
+                LogViewer = "System is stable now.";
+                List<Entity> downlist = NodesList.Where(s => (s.Status == "Down")).ToList<Entity>();
+
+                DownNodesList.Clear();
+                foreach (var item in downlist)
+                {
+                    item.DownTime = DateTime.Now;
+                    item.UpTime = null;
+                    int count = -1;
+                    count = await SearchinDBDownListAsync(item);
+                    if (count == 0)
+                    {
+                        DownNodesList.Add(item);
+                    }
+                }
+                if (DownNodesList.Count > 0)
+                {
+                    await InsertDBAsync();
+                }
+                LogViewer = "Completed MySQL Database sync in application side.";
+                Write_logFile(LogViewer);
             }
-            if (DownNodesList.Count > 0)
-            {
-                await InsertDBAsync();
-            }
-            LogViewer = "Completed MySQL Database sync in application side.";
-            Write_logFile(LogViewer);
-            
         }
 
         private static System.Timers.Timer PingSenseTimer = new System.Timers.Timer();
@@ -433,7 +436,7 @@ namespace Echo
             LogViewer = "Started monitoring ping for "+ PingSensePeriodForSMS + " min(s).";
             Write_logFile(LogViewer);
 
-            PingSenseTimer.Interval = PingSensePeriodForSMS * 60 * 1000;
+            PingSenseTimer.Interval = 60000;
             PingSenseTimer.AutoReset = true;
             PingSenseTimer.Elapsed -= PingSenseFlagTimer_Tick;
             PingSenseTimer.Elapsed += PingSenseFlagTimer_Tick;
@@ -470,7 +473,8 @@ namespace Echo
                         {
                             LogViewer = "Monitoring '" + en.Name + "' for [Down] Status.";
                             Write_logFile(LogViewer);
-                            TempDownNodesList.Add(en);
+                            if (!TempDownNodesList.Select(s => s.IPAddress).ToList().Contains(en.IPAddress))
+                                TempDownNodesList.Add(en);
                             if (!PingSenseTimer.Enabled)
                             {
                                 TimerforPingSenseMethod();
@@ -738,9 +742,9 @@ namespace Echo
         }
 
 
-        public int SMSInterval = 120; //min
+        public int SMSInterval = 180; //min
         public int PingSensePeriodForSMS = 4; //min
-        public int RefreshPeriod = 6; //min
+        //public int RefreshPeriod = 6; //min
 
         private static System.Timers.Timer StatusResetAndSMSTimer = new System.Timers.Timer();
 
@@ -761,29 +765,38 @@ namespace Echo
 #if DEBUG
             LogViewer = "timeCounter " + timeCounter.ToString();
 #endif
-            if (timeCounter == SMSInterval - PingSensePeriodForSMS) //reset before sms
+
+            if (timeCounter == SMSInterval - 1 && RepetitiveSMSActive)
             {
                 ResetStatus();
                 LogViewer = "Status of all nodes refreshed.";
                 Write_logFile(LogViewer);
             }
-
-            if (timeCounter == SMSInterval)
+            else if (timeCounter == SMSInterval)
             {
-                timeCounter = 0;
-                NextSMSTime = DateTime.Now.AddMinutes(SMSInterval).ToLongTimeString();
-
                 if (RepetitiveSMSActive)
                 {
-                    if(RunPingFunctionality)
+                    foreach (var item in NodesList)
+                    {
+                        if (item.PingCount < 4)
+                        {
+                            timeCounter--;
+#if DEBUG
+                            LogViewer = "TimeCounter returned from SMS trigger due to ping count less than 4.";
+#endif
+                            Write_logFile("TimeCounter returned from SMS trigger due to ping count less than 4.");
+                            return;
+                        }
+                    }
+                    timeCounter = 0;
+                    NextSMSTime = DateTime.Now.AddMinutes(SMSInterval).ToLongTimeString();
+                    if (RunPingFunctionality)
                         this.RunPingFunctionality = false;
                     SMSThreadMethod();
                 }
-            }
-            else if (timeCounter % RefreshPeriod == 0) //reset each reset interval
-            {
-                if (SMSInterval - timeCounter > PingSensePeriodForSMS)
+                else
                 {
+                    timeCounter = 0;
                     ResetStatus();
 #if DEBUG
                     LogViewer = "Refreshed.";
@@ -791,10 +804,18 @@ namespace Echo
                     Write_logFile("Refreshed.");
                 }
             }
+            else if (timeCounter % PingSensePeriodForSMS == 0 && !PingSenseTimer.Enabled) //refresh each refresh interval
+            {
+                ResetStatus();
+#if DEBUG
+                LogViewer = "Refreshed.";
+#endif
+                Write_logFile("Refreshed.");                
+            }
         }
 
 
-        bool SleepBeforePing = false;
+        bool sleepBeforePingAfterRefresh = false;
         public void ResetStatus()
         {
             if (RunPingFunctionality)
@@ -813,7 +834,7 @@ namespace Echo
                 item.MinRoundTripTime = 999999;
             }
 
-            SleepBeforePing = true;
+            sleepBeforePingAfterRefresh = true;
             if (!RunPingFunctionality)
                 this.RunPingFunctionality = true;
         }
@@ -847,80 +868,111 @@ namespace Echo
             }
         }
 
+
+        int pingsensetimecounter = 0;
+
         private void PingSenseFlagTimer_Tick(object sender, System.Timers.ElapsedEventArgs e)
         {
-#if DEBUG
-            LogViewer = "Ping sense ticked.";
-#endif
-            Write_logFile("Ping sense ticked.");
-            if (RunPingFunctionality)
-                this.RunPingFunctionality = false;
-            Thread.Sleep(5000);
-            PingSenseTimer.Stop();
-            List<String> down_ip_list = NodesList.Where(s => (s.Status == "Down")).ToList<Entity>().Select(o => o.IPAddress).ToList();
+            pingsensetimecounter++;
+            if (pingsensetimecounter < PingSensePeriodForSMS)
+                return;
 
-            int downnodescount = NodesList.Where(s => (s.Status == "Down" || s.Status == "Unknown")).ToList<Entity>().Count;
-            if (downnodescount != NodesList.Count)
+            if (pingsensetimecounter == PingSensePeriodForSMS)
             {
-                bool shouldsendSMS4up = false, shouldsendSMS4down = false;
-                if (TempDownNodesList.Count > 0)
+                ResetStatus();
+                LogViewer = "Status of all nodes refreshed before status change event fire.";
+                Write_logFile(LogViewer);
+            }
+            else if (pingsensetimecounter > PingSensePeriodForSMS)
+            {
+                foreach (var item in NodesList)
                 {
-                    TempDownNodesList.RemoveAll(item => !down_ip_list.Contains(item.IPAddress));
-
-                    if(TempDownNodesList.Count > 0)
+                    if (item.PingCount < 4)
                     {
-                        shouldsendSMS4down = true;
+#if DEBUG
+                        LogViewer = "Ping sense returned due to ping count less than 4.";
+#endif
+                        Write_logFile("Ping sense returned due to ping count less than 4.");
+                        return;
                     }
                 }
 
-                if (UPNodesList.Count > 0)
+                pingsensetimecounter = 0;
+
+#if DEBUG
+                LogViewer = "Ping sense ticked.";
+#endif
+                Write_logFile("Ping sense ticked.");
+                if (RunPingFunctionality)
+                    this.RunPingFunctionality = false;
+                Thread.Sleep(5000);
+
+                PingSenseTimer.Stop();
+                List<String> down_ip_list = NodesList.Where(s => (s.Status == "Down")).ToList<Entity>().Select(o => o.IPAddress).ToList();
+
+                int downnodescount = NodesList.Where(s => (s.Status == "Down" || s.Status == "Unknown")).ToList<Entity>().Count;
+                if (downnodescount != NodesList.Count)
                 {
-                    UPNodesList.RemoveAll(item => down_ip_list.Contains(item.IPAddress));
+                    bool shouldsendSMS4up = false, shouldsendSMS4down = false;
+                    if (TempDownNodesList.Count > 0)
+                    {
+                        TempDownNodesList.RemoveAll(item => !down_ip_list.Contains(item.IPAddress));
+
+                        if (TempDownNodesList.Count > 0)
+                        {
+                            shouldsendSMS4down = true;
+                        }
+                    }
 
                     if (UPNodesList.Count > 0)
                     {
-                        shouldsendSMS4up = true;
+                        UPNodesList.RemoveAll(item => down_ip_list.Contains(item.IPAddress));
+
+                        if (UPNodesList.Count > 0)
+                        {
+                            shouldsendSMS4up = true;
+                        }
+                    }
+
+                    if (shouldsendSMS4down && !shouldsendSMS4up)
+                    {
+                        LogViewer = "Firing SMS for node changing to Down status.";
+                        Write_logFile(LogViewer);
+                    }
+                    else if (!shouldsendSMS4down && shouldsendSMS4up)
+                    {
+                        TempDownNodesList.Clear();
+                        LogViewer = "Firing SMS for node changing to Up status.";
+
+                        Write_logFile(LogViewer);
+                    }
+                    else if (shouldsendSMS4down && shouldsendSMS4up)
+                    {
+                        LogViewer = "Firing SMS for both Status changes for some PoPs.";
+                        Write_logFile(LogViewer);
+                    }
+                    else
+                    {
+                        TempDownNodesList.Clear();
+                        LogViewer = "SMS halted due to status reverse (fluctuation).";
+                        Write_logFile(LogViewer);
+                    }
+
+                    if (shouldsendSMS4up || shouldsendSMS4down)
+                    {
+                        SMSThreadMethod();
+                    }
+                    else
+                    {
+                        if (!RunPingFunctionality)
+                            this.RunPingFunctionality = true;
                     }
                 }
-
-                if(shouldsendSMS4down && !shouldsendSMS4up)
-                {
-                    LogViewer = "Firing SMS for node changing to Down status.";
-                    Write_logFile(LogViewer);
-                }
-                else if(!shouldsendSMS4down && shouldsendSMS4up)
-                {
-                    TempDownNodesList.Clear();
-                    LogViewer = "Firing SMS for node changing to Up status.";
-                    
-                    Write_logFile(LogViewer);
-                }
-                else if (shouldsendSMS4down && shouldsendSMS4up)
-                {
-                    LogViewer = "Firing SMS for both Status changes for some PoPs.";
-                    Write_logFile(LogViewer);
-                }
                 else
                 {
-                    TempDownNodesList.Clear();
-                    LogViewer = "SMS halted due to status reverse (fluctuation).";
-                    Write_logFile(LogViewer);
+                    LogViewer = "Please check internet connection.";
+                    Write_logFile("Network down when firing SMS due to status change.");
                 }
-
-                if (shouldsendSMS4up || shouldsendSMS4down)
-                {
-                    SMSThreadMethod();
-                }
-                else
-                {
-                    if (!RunPingFunctionality)
-                        this.RunPingFunctionality = true;
-                }
-            }
-            else
-            {
-                LogViewer = "Please check internet connection.";
-                Write_logFile("Network down when firing SMS due to status change.");
             }
         }
 
@@ -1429,9 +1481,9 @@ namespace Echo
 
         private void PingThread()
         {
-            if (SleepBeforePing)
+            if (sleepBeforePingAfterRefresh)
             {
-                SleepBeforePing = false;
+                sleepBeforePingAfterRefresh = false;
                 Thread.Sleep(5000);
             }
 
@@ -1498,7 +1550,7 @@ namespace Echo
 
             if (this.NodesList.Count > 0 && ExcelLoaded)
             {
-                LogViewer = "Excel file imported. Total number of nodes: " + NodesList.Count.ToString();
+                LogViewer = "Excel file imported. Total number of PoPs: " + NodesList.Count.ToString();
                 Write_logFile(LogViewer);
 
                 int cnt = (from _itm in NodesList

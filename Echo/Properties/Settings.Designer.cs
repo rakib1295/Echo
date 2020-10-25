@@ -85,18 +85,6 @@ namespace Echo.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("7")]
-        public string Refresh_Interval {
-            get {
-                return ((string)(this["Refresh_Interval"]));
-            }
-            set {
-                this["Refresh_Interval"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("5")]
         public string PingSenseTime {
             get {
