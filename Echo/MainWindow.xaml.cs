@@ -116,19 +116,19 @@ namespace Echo
                 {
                     _NodeSMSStatus.Text = "SMS Enabled";
                     _NodeSMSStatus.Foreground = Brushes.Green;
-                    Edit_btn.Content = "Temporarily disable SMS for this PoP?";
+                    Edit_btn.Content = "Temporarily disable SMS for this " + VM.NodeIdentifier + "?";
                 }
                 else
                 {
                     _NodeSMSStatus.Text = "Ping Only";
                     _NodeSMSStatus.Foreground = Brushes.Red;
-                    Edit_btn.Content = "Enable SMS for this PoP ->";
+                    Edit_btn.Content = "Enable SMS for this " + VM.NodeIdentifier + " ->";
                 }
             }
             catch (Exception ex)
             {
                 Show_LogTextblock("Please double click again.");
-                VM.Write_logFile("Exception while double clicking on a PoP: " + ex.Message + " <" + ex.GetType().ToString() + ">");
+                VM.Write_logFile("Exception while double clicking on a " + VM.NodeIdentifier + ": " + ex.Message + " <" + ex.GetType().ToString() + ">");
             }
         }
 
@@ -141,15 +141,15 @@ namespace Echo
                 _itm.Action_Type = NodeType.PINGONLY.ToString();
                 _NodeSMSStatus.Text = "Ping Only";
                 _NodeSMSStatus.Foreground = Brushes.Red;
-                Edit_btn.Content = "Enable SMS for this PoP ->";
-                Show_LogTextblock(_itm.Name + " has been configured as " + _itm.Action_Type + ". No SMS will be sent for this PoP.");
+                Edit_btn.Content = "Enable SMS for this " + VM.NodeIdentifier + " ->";
+                Show_LogTextblock(_itm.Name + " has been configured as " + _itm.Action_Type + ". No SMS will be sent for this " + VM.NodeIdentifier + ".");
             }
             else
             {
                 _itm.Action_Type = NodeType.SMSENABLED.ToString();
                 _NodeSMSStatus.Text = "SMS Enabled";
                 _NodeSMSStatus.Foreground = Brushes.Green;
-                Edit_btn.Content = "Temporarily disable SMS for this PoP?";
+                Edit_btn.Content = "Temporarily disable SMS for this " + VM.NodeIdentifier + "?";
                 Show_LogTextblock(_itm.Name + " has been configured as " + _itm.Action_Type + ".");
             }
         }
@@ -217,6 +217,7 @@ namespace Echo
             Properties.Settings.Default.SMSIfAllUp = (bool)SMSIfAllUp_Checkbox.IsChecked;
             Properties.Settings.Default.AllLinksUp_txt = AllLinksUp_txtbox.Text;
             Properties.Settings.Default.SMS_Server = SMS_Server_txtbox.Text;
+            Properties.Settings.Default.NodeIdentifier = NodeIdentifier_txtbox.Text;
 
             Properties.Settings.Default.Save();
         }
@@ -244,6 +245,7 @@ namespace Echo
             SMSIfAllUp_Checkbox.IsChecked = Properties.Settings.Default.SMSIfAllUp;
             AllLinksUp_txtbox.Text = Properties.Settings.Default.AllLinksUp_txt;
             SMS_Server_txtbox.Text = Properties.Settings.Default.SMS_Server;
+            NodeIdentifier_txtbox.Text = Properties.Settings.Default.NodeIdentifier;
 
             DB_ID_txtbox.Text = Properties.Settings.Default.DB_UID;
             DB_psw.Password = Properties.Settings.Default.DB_PW;
@@ -255,7 +257,7 @@ namespace Echo
         private void Default_btn_Click(object sender, RoutedEventArgs e)
         {
             Popup_Settings.IsOpen = true;
-            if (MessageBox.Show("Do you want to reset PoP Status settings data to default value?", VM.Title, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            if (MessageBox.Show("Do you want to reset node Status settings data to default value?", VM.Title, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             {
                 Repetitive_SMS_Checkbox.IsChecked = true;
                 ParcentLoss_txtbox.Text = "90";
@@ -264,7 +266,9 @@ namespace Echo
                 MsgHeader_txtbox.Text = "Dear Sir,";
                 MsgFooter_txtbox.Text = "NOC\nMoghbazar\nT-0258312345";
                 SMSIfAllUp_Checkbox.IsChecked = true;
-                AllLinksUp_txtbox.Text = "All PoPs are up now.";
+                NodeIdentifier_txtbox.Text = "link";
+                AllLinksUp_txtbox.Text = "All " + VM.NodeIdentifier + "s are up now.";
+                
                 Show_LogTextblock("Settings data has been reset to default.");
             }
         }
@@ -292,6 +296,7 @@ namespace Echo
                         LoadExcel_btn.ClearValue(BackgroundProperty);
                         Ping_btn.IsEnabled = true;
                         Ping_btn.Content = "Pause System";
+                        Ping_btn.ClearValue(BackgroundProperty);
                         StopSMS_btn.IsEnabled = true;
                         StopSMS_btn.Content = "Stop SMS";
                         Send_btn.IsEnabled = true;
@@ -341,6 +346,7 @@ namespace Echo
                     else
                     {
                         Ping_btn.Content = "Pause System";
+                        Ping_btn.ClearValue(BackgroundProperty);
                     }
                 }));
             }
@@ -709,7 +715,7 @@ namespace Echo
         private void Reset_MouseEnter_1(object sender, MouseEventArgs e)
         {
             Popup_Common.IsOpen = true;
-            Popup_Common_textblock.Text = "Click here to refresh PoP Status.";
+            Popup_Common_textblock.Text = "Click here to refresh node Status.";
             timerforPopup.Interval = TimeSpan.FromSeconds(5);
             timerforPopup.Start();
         }
@@ -885,7 +891,7 @@ namespace Echo
             Popup_Common.IsOpen = true;
             if (!VM.RunPingFunctionality)
             {
-                Popup_Common_textblock.Text = "Click here to ping PoPs now.";
+                Popup_Common_textblock.Text = "Click here to ping nodes now.";
             }
             else
             {
@@ -913,7 +919,7 @@ namespace Echo
 
         private void Reset_btn_Click_1(object sender, RoutedEventArgs e)
         {
-            if (MessageBox.Show("Do you want to refresh PoP Status?", VM.Title, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            if (MessageBox.Show("Do you want to refresh node Status?", VM.Title, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             {
                 Show_LogTextblock("Refresh button clicked.");
                 VM.Write_logFile("Refresh button clicked.");
@@ -1102,7 +1108,7 @@ namespace Echo
         {
             return
                 "\n  1. Please at first browse excel file from file menu, if 'Load Excel' button blinks. There should be two sheets in excel file: A) 1st sheet will contain router or switch info. B) 2nd sheet will contain phone number list for sending message." +
-                "\n  2. In first sheet of excel, there will be 4 columns: i)IP address ii)PoP name iii)PoP type iv)Area. First row will be for column headers." +
+                "\n  2. In first sheet of excel, there will be 4 columns: i)IP address ii)Node name iii)Node type iv)Area. First row will be for column headers." +
                 "\n  3. In second sheet of excel, there will be phone numbers at first column. Again first row will be for column header. Phone numbers must be in 10 digits (starts with '1' not with '0')." +
                 "\n  4. After browsing the excel file, give username and password for Teletalk account in settings then click the 'Load Excel' button." +
                 "\n  5. If you need to adjust SMS time interval and refresh interval, do it from settings." +
@@ -1117,10 +1123,10 @@ namespace Echo
                 "\n  14. Each log data will be saved to this directory:- C:\\Users\\Public\\" + VM.Title + " Log" +
                 "\n  15. You can click on column name to sort by ascending or descending." +
                 "\n  16. You can search any data from the list by writing any search entry at search box. At first select from 'Search by' by which you want to search." +
-                "\n  17. Add text in 'All PoPs up' message box in settings, which will be the message if all PoPs are up." +
+                "\n  17. Add text in 'All nodes up' message box in settings, which will be the message if all nodes are up." +
                 "\n  18. You can stop sending SMS by clicking 'Stop SMS' button." +
-                "\n  19. You can stop sending SMS when all PoPs are up by unchecking 'Send SMS even all PoPs are up' at SMS Settings." +
-                "\n  20. You can stop sending SMS for a particular PoP temporarily. To do this, double click on a PoP and disable its SMS." +
+                "\n  19. You can stop sending SMS when all nodes are up by unchecking 'Send SMS even all nodes are up' at SMS Settings." +
+                "\n  20. You can stop sending SMS for a particular node temporarily. To do this, double click on a node and disable its SMS." +
                 "\n  21. Database Connection should be connected properly. In MySQL database, there should be two tables: a) CurrentDownPoPs, b) PoP_Status. These should have proper fields. Contact administrator to change any field manually." +
                 "\n  22. MOST IMPORTANT: Create new partition on database for new year at end of each year.";
 
@@ -1139,7 +1145,7 @@ namespace Echo
             {
                 VM.SMSEvenAllUp = true;
                 AllLinksUp_txtbox.IsEnabled = true;
-                Show_LogTextblock("SMS will be sent even all PoPs are up.");
+                Show_LogTextblock("SMS will be sent even all " + VM.NodeIdentifier + "s are up.");
             }
         }
 
@@ -1148,7 +1154,7 @@ namespace Echo
         {
             VM.SMSEvenAllUp = false;
             AllLinksUp_txtbox.IsEnabled = false;
-            Show_LogTextblock("SMS will not be sent when all PoPs are up.");
+            Show_LogTextblock("SMS will not be sent when all " + VM.NodeIdentifier + "s are up.");
         }
 
         private void AccTest_btn_Click(object sender, RoutedEventArgs e)
@@ -1329,7 +1335,11 @@ namespace Echo
                     }
                 }
             }
+        }
 
+        private void NodeIdentifier_txtbox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            VM.NodeIdentifier = NodeIdentifier_txtbox.Text;
         }
     }
 }

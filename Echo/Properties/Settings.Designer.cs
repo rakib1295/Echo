@@ -121,7 +121,7 @@ namespace Echo.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("All PoPs are up now.")]
+        [global::System.Configuration.DefaultSettingValueAttribute("All links are up now.")]
         public string AllLinksUp_txt {
             get {
                 return ((string)(this["AllLinksUp_txt"]));
@@ -200,6 +200,18 @@ namespace Echo.Properties {
             }
             set {
                 this["SMS_Server"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("link")]
+        public string NodeIdentifier {
+            get {
+                return ((string)(this["NodeIdentifier"]));
+            }
+            set {
+                this["NodeIdentifier"] = value;
             }
         }
     }

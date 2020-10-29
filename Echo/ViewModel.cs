@@ -28,6 +28,7 @@ namespace Echo
         public String Message_Header = "";
         public String Message_Footer = "";
         public String AllLinksUpMessage = "";
+        public String NodeIdentifier = "link";
         public bool RepetitiveSMSActive = true;
         public bool SMS_ON = true;
         public bool SMSEvenAllUp = true;
@@ -437,12 +438,16 @@ namespace Echo
             }
         }
 
+        private Task<int> SearchinDBDownListAsync(Entity en)
+        {
+            return Task.Run(() => SearchinDBDownList(en));
+        }
 
-        private async Task<int> SearchinDBDownListAsync(Entity en)
+        private int SearchinDBDownList(Entity en)
         {
             int count = 0;
 
-            lock(DB)
+            lock (DB)
             {
                 count = DB.SearchinCurrentDownNodes(en.IPAddress);
             }
@@ -579,6 +584,7 @@ namespace Echo
         }
 
         bool RunningDBSync = false;
+
         private async void SyncDBAsync()
         {
             LogViewer = "Syncing MySQL Database......";
@@ -880,7 +886,7 @@ namespace Echo
                     }
                     else if (shouldsendSMS4down && shouldsendSMS4up)
                     {
-                        LogViewer = "Firing SMS for both Status changes for some PoPs.";
+                        LogViewer = "Firing SMS for both Status changes for some " + NodeIdentifier + "s.";
                         Write_logFile(LogViewer);
                     }
                     else
@@ -1012,7 +1018,7 @@ namespace Echo
             }
             else
             {
-                LogViewer = "Error: All PoPs are down, may be something is wrong. Please check internet connection of this Computer.";
+                LogViewer = "Error: All " + NodeIdentifier + "s are down, may be something is wrong. Please check internet connection of this Computer.";
                 Write_logFile(LogViewer);
                 timeCounter = SMSInterval / 2;
                 NextSMSTime = DateTime.Now.AddMinutes(SMSInterval - timeCounter).ToLongTimeString();
@@ -1051,20 +1057,20 @@ namespace Echo
             {
                 if (UCount > 1)
                 {
-                    SMSContentString = SMSContentString_UpNodes + " PoPs are up.\n";
+                    SMSContentString = SMSContentString_UpNodes + " " + NodeIdentifier + "s are up.\n";
                 }
                 else if (UCount == 1)
                 {
-                    SMSContentString = SMSContentString_UpNodes + " PoP is up.\n";
+                    SMSContentString = SMSContentString_UpNodes + " " + NodeIdentifier + " is up.\n";
                 }
 
                 if (DCount > 1)
                 {
-                    SMSContentString = SMSContentString + SMSContentString_DownNodes + " PoPs are down.\n";
+                    SMSContentString = SMSContentString + SMSContentString_DownNodes + " " + NodeIdentifier + "s are down.\n";
                 }
                 else if (DCount == 1)
                 {
-                    SMSContentString = SMSContentString + SMSContentString_DownNodes + " PoP is down.\n";
+                    SMSContentString = SMSContentString + SMSContentString_DownNodes + " " + NodeIdentifier + " is down.\n";
                 }
                 else if(DCount == 0)
                 {
@@ -1079,7 +1085,7 @@ namespace Echo
                 }
                 else
                 {
-                    LogViewer = "All PoPs are up now, so message will not be sent.";
+                    LogViewer = "All " + NodeIdentifier + "s are up now, so message will not be sent.";
                 }
             }
 
@@ -1190,7 +1196,7 @@ namespace Echo
                     dataStream.Dispose();
                     response.Dispose();
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     AccountStatusText = "Network error! :(";
                 }
@@ -1490,19 +1496,19 @@ namespace Echo
 
             if (this.NodesList.Count > 0 && ExcelLoaded)
             {
-                LogViewer = "Excel file imported. Total number of PoPs: " + NodesList.Count.ToString();
+                LogViewer = "Excel file imported. Total number of nodes: " + NodesList.Count.ToString();
                 Write_logFile(LogViewer);
 
                 int cnt = (from _itm in NodesList
                            where _itm.Action_Type == NodeType.SMSENABLED.ToString()
                            select _itm).Count();
-                LogViewer = "Number of PoPs which should be notified through SMS: " + cnt.ToString();
+                LogViewer = "Number of nodes which should be notified through SMS: " + cnt.ToString();
                 Write_logFile(LogViewer);
 
                 cnt = (from _itm in NodesList
                        where _itm.Action_Type == NodeType.PINGONLY.ToString()
                        select _itm).Count();
-                LogViewer = "Number of PoPs which will ping only: " + cnt.ToString();
+                LogViewer = "Number of nodes which will ping only: " + cnt.ToString();
                 Write_logFile(LogViewer);
 
                 LogViewer = "Number of Phone numbers: " + PhoneNumberList.Count.ToString();

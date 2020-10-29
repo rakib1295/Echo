@@ -28,7 +28,7 @@
     <ProductName>Echo</ProductName>
     <PublisherName>Md. Rakib Subaid</PublisherName>
     <ApplicationRevision>90</ApplicationRevision>
-    <ApplicationVersion>5.7.1.%2a</ApplicationVersion>
+    <ApplicationVersion>5.8.1.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
