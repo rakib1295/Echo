@@ -302,10 +302,10 @@
                                 <ColumnDefinition Width="148*"/>
                                 <ColumnDefinition Width="79*"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="Username:" Grid.Row="0" Grid.Column="0" Margin="5,5,0,0" FontSize="10" Grid.ColumnSpan="2" />
+                            <TextBlock Text="Username:" Grid.Row="0" Grid.Column="0" Margin="5,5,0,0" FontSize="10" Grid.ColumnSpan="2" FontWeight="Bold"/>
                             <TextBox x:Name="user_name" TextChanged="user_name_TextChanged_1" Grid.Row="0" Grid.Column="2" HorizontalAlignment="Left"  Margin="5,0,0,2" Width="100" FontSize="10"/>
 
-                            <TextBlock Text="Password:"  Grid.Row="1" Grid.Column="0" Margin="5,5,0,0" FontSize="10" Grid.ColumnSpan="2"/>
+                            <TextBlock Text="Password:"  Grid.Row="1" Grid.Column="0" Margin="5,5,0,0" FontSize="10" Grid.ColumnSpan="2" FontWeight="Bold"/>
                             <PasswordBox x:Name="acc_psw" PasswordChar="*" PasswordChanged="acc_psw_PasswordChanged_1" Width="100" HorizontalAlignment="Left" Grid.Row="1" Grid.Column="2" Margin="5,2,0,0" FontSize="10"/>
                         </Grid>
                         <Grid Grid.Row="3" Margin="5">
@@ -313,7 +313,7 @@
                                 <ColumnDefinition Width="70"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="SMS Server: "/>
+                            <TextBlock Grid.Column="0" Text="SMS Server: " FontWeight="Bold"/>
                             <TextBox x:Name="SMS_Server_txtbox" Grid.Column="1" TextWrapping="Wrap" TextChanged="SMS_Server_txtbox_TextChanged"/>
                         </Grid>
                         <Grid Grid.Row="4" Margin="0,5,0,0">
@@ -321,7 +321,7 @@
                                 <ColumnDefinition/>
                                 <ColumnDefinition/>
                             </Grid.ColumnDefinitions>
-                            <Button x:Name="AccTest_btn" Grid.Column="0" Width="100" Content="Test Account" Click="AccTest_btn_Click"/>
+                            <Button x:Name="AccTest_btn" Grid.Column="0" Width="100" Margin="0,0,0,1" Content="Test Account" Click="AccTest_btn_Click"/>
                             <TextBlock x:Name="AccTest_Txtblk" Grid.Column="1"/>
                         </Grid>
                     </Grid>
@@ -367,7 +367,7 @@
                                 <ColumnDefinition/>
                                 <ColumnDefinition Width="40"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" FontSize="12" TextWrapping="Wrap" Text="Period of Refresh time. Value shoud be between 2 &amp; 10 (in minutes)" Margin="5,0" />
+                            <TextBlock Grid.Column="0" FontSize="12" TextWrapping="Wrap" Text="Period of Refresh time and ping sense time. Value shoud be between 3 to 10 (in minutes)" Margin="5,0" />
                             <TextBox Grid.Column="1" x:Name="PingSenseTime_txtbox" TextChanged="PingSenseTime_txtbox_TextChanged_1"  Margin="5,0"  Height="25"/>
                         </Grid>
                         <Grid Grid.Row="3">
@@ -397,10 +397,10 @@
                         </Grid>
                     </Grid>
                     <Grid Grid.Row="3" Background="#FFA7EAA7">
-                        <Button x:Name="Default_btn"  Grid.Row="3" Content="Restore Default Values for PoP Settings->" Click="Default_btn_Click"  Height="25" VerticalAlignment="Bottom" Width="auto" Margin="5,5"/>
+                        <Button x:Name="Default_btn" Content="Restore Default Values for PoP Settings->" Click="Default_btn_Click"  Height="25" VerticalAlignment="Bottom" Width="auto" Margin="5,5"/>
 
                     </Grid>
-                    <Button x:Name="Settings_OK_btn" Grid.Row="4" Content="OK" Click="Settings_OK_btn_Click_1" Height="25" VerticalAlignment="Bottom" Width="80" Margin="5,5"/>
+                    <Button x:Name="Settings_OK_btn" Grid.Row="4" Content="Save &amp; Close" Click="Settings_OK_btn_Click_1" Height="25" VerticalAlignment="Bottom" Width="100" Margin="5,5"/>
                 </Grid>
             </ScrollViewer>
         </Popup>
@@ -466,8 +466,8 @@
                         <ColumnDefinition/>
                         <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
-                    <Button x:Name="DB_Settings_OK_btn" Grid.Column="0" Content="OK" Click="DB_Settings_OK_btn_Click" Height="auto" VerticalAlignment="Bottom" Width="80" />
-                    <Button x:Name="DB_Settings_Cancel_btn" Grid.Column="1" Content="Cancel" Click="DB_Settings_Cancel_btn_Click" Height="auto" VerticalAlignment="Bottom" Width="80" />
+                    <Button x:Name="DB_Settings_OK_btn" Grid.Column="0" Content="Save &amp; Close" Click="DB_Settings_OK_btn_Click" Height="auto" VerticalAlignment="Bottom" Width="100" />
+                    <Button x:Name="DB_Settings_Cancel_btn" Grid.Column="1" Content="Cancel" Click="DB_Settings_Cancel_btn_Click" Height="auto" VerticalAlignment="Bottom" Width="100" />
 
                 </Grid>
             </Grid>

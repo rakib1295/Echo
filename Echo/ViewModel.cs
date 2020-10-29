@@ -48,13 +48,12 @@ namespace Echo
             NetCheckingTimer.Elapsed += NetCheckingTimer_Tick;
 
 
-            _nodes = new ObservableCollection<Entity>();
-            _nodeslist = new List<Entity>();
-            _phonenumberlist = new List<int>();
-            _downnodeslist = new List<Entity>();
-            _tempdownnodeslist = new List<Entity>();
-            _upnodeslist = new List<Entity>();
-            //_zonelist = new List<Zone>();
+            Nodes = new ObservableCollection<Entity>();
+            NodesList = new List<Entity>();
+            PhoneNumberList = new List<int>();
+            DownNodesList = new List<Entity>();
+            TempDownNodesList = new List<Entity>();
+            UPNodesList = new List<Entity>();
         }
 
         private void ViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -188,8 +187,8 @@ namespace Echo
             }
         }
 
-        private String _nextSMSTime = "";
-        public String NextSMSTime
+        private string _nextSMSTime = "";
+        public string NextSMSTime
         {
             get { return _nextSMSTime; }
             set
@@ -200,8 +199,8 @@ namespace Echo
             }
         }
 
-        private String _pingStatusText = "";
-        public String PingStatusText
+        private string _pingStatusText = "";
+        public string PingStatusText
         {
             get { return _pingStatusText; }
             set
@@ -212,8 +211,8 @@ namespace Echo
             }
         }
 
-        private String _accountStatusText = "";
-        public String AccountStatusText
+        private string _accountStatusText = "";
+        public string AccountStatusText
         {
             get { return _accountStatusText; }
             set
@@ -254,7 +253,7 @@ namespace Echo
         }
 
 
-        public String LogViewer
+        public string LogViewer
         {
             get { return _logviewer; }
             set
@@ -278,89 +277,22 @@ namespace Echo
 
         protected void OnPropertyChanged(string data)
         {
-            PropertyChangedEventHandler handler = PropertyChanged;
-            if (handler != null)
-            {
-                handler(this, new PropertyChangedEventArgs(data));
-            }
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(data));
         }
 
+        public IList<Entity> NodesList { get; set; }
+
+        public IList<Entity> DownNodesList { get; set; }
+
+        public List<Entity> TempDownNodesList { get; set; }
+
+        public List<Entity> UPNodesList { get; set; }
 
 
-        private ObservableCollection<Entity> _nodes;
-        private IList<Entity> _nodeslist;
-        private IList<Entity> _downnodeslist;
-        private List<Entity> _tempdownnodeslist;
-        private List<Entity> _upnodeslist;
-        private IList<int> _phonenumberlist;
-        //private IList<Zone> _zonelist;
-
-        //public IList<Zone> ZoneList
-        //{
-        //    get { return _zonelist; }
-        //    set
-        //    {
-        //        _zonelist = value;
-        //        OnPropertyChanged("ZonelistChanged");
-        //    }
-        //}
-        public IList<Entity> NodesList
-        {
-            get { return _nodeslist; }
-            set
-            {
-                _nodeslist = value;
-                //OnPropertyChanged("NodeslistChanged");
-            }
-        }
-
-        public IList<Entity> DownNodesList
-        {
-            get { return _downnodeslist; }
-            set
-            {
-                _downnodeslist = value;
-                //OnPropertyChanged("DownRoutersListChanged");
-            }
-        }
-
-        public List<Entity> TempDownNodesList
-        {
-            get { return _tempdownnodeslist; }
-            set
-            {
-                _tempdownnodeslist = value;
-                //OnPropertyChanged("DownRoutersListChanged");
-            }
-        }
-
-        public List<Entity> UPNodesList
-        {
-            get { return _upnodeslist; }
-            set
-            {
-                _upnodeslist = value;
-                //OnPropertyChanged("DownRoutersListChanged");
-            }
-        }
+        public IList<int> PhoneNumberList { get; set; }
 
 
-        public IList<int> PhoneNumberList
-        {
-            get { return _phonenumberlist; }
-            set { _phonenumberlist = value; }
-        }
-
-
-        public ObservableCollection<Entity> Nodes
-        {
-            get { return _nodes; }
-            set
-            {
-                _nodes = value;
-                //OnPropertyChanged("NodesChanged");
-            }
-        }
+        public ObservableCollection<Entity> Nodes { get; set; }
 
         public void AppLoaded_Event()
         {
@@ -380,53 +312,44 @@ namespace Echo
             AppLoadingTimer.Start();
         }
 
-        int apploadingtimecounter = 0;
         private async void AppLoadingTimer_Tick(object sender, System.Timers.ElapsedEventArgs e)
         {
-            apploadingtimecounter++;
-            if (apploadingtimecounter < PingSensePeriodForSMS)
-                return;
-
-            if (apploadingtimecounter >= PingSensePeriodForSMS)
+            foreach (var item in NodesList)
             {
-                foreach (var item in NodesList)
+                if (item.PingCount < 4)
                 {
-                    if (item.PingCount < 4)
-                    {
 #if DEBUG
-                        LogViewer = "App loading returned due to ping count less than 4.";
+                    LogViewer = "App loading returned due to ping count less than 4.";
 #endif
-                        Write_logFile("App loading returned due to ping count less than 4.");
-                        return;
-                    }
+                    Write_logFile("App loading returned due to ping count less than 4.");
+                    return;
                 }
-
-                apploadingtimecounter = 0;
-                AppLoadingFlag = false;
-
-                AppLoadingTimer.Stop();
-                LogViewer = "System is stable now.";
-                List<Entity> downlist = NodesList.Where(s => (s.Status == "Down")).ToList<Entity>();
-
-                DownNodesList.Clear();
-                foreach (var item in downlist)
-                {
-                    item.DownTime = DateTime.Now;
-                    item.UpTime = null;
-                    int count = -1;
-                    count = await SearchinDBDownListAsync(item);
-                    if (count == 0)
-                    {
-                        DownNodesList.Add(item);
-                    }
-                }
-                if (DownNodesList.Count > 0)
-                {
-                    await InsertDBAsync();
-                }
-                LogViewer = "Completed MySQL Database sync in application side.";
-                Write_logFile(LogViewer);
             }
+
+            AppLoadingFlag = false;
+
+            AppLoadingTimer.Stop();
+            LogViewer = "System is stable now.";
+            List<Entity> downlist = NodesList.Where(s => (s.Status == "Down")).ToList<Entity>();
+
+            DownNodesList.Clear();
+            foreach (var item in downlist)
+            {
+                item.DownTime = DateTime.Now;
+                item.UpTime = null;
+                int count = -1;
+                count = await SearchinDBDownListAsync(item);
+                if (count == 0)
+                {
+                    DownNodesList.Add(item);
+                }
+            }
+            if (DownNodesList.Count > 0)
+            {
+                await InsertDBAsync();
+            }
+            LogViewer = "Completed MySQL Database sync in application side.";
+            Write_logFile(LogViewer);            
         }
 
         private static System.Timers.Timer PingSenseTimer = new System.Timers.Timer();
@@ -560,7 +483,7 @@ namespace Echo
             {
                 if (inserted_uptable > 0)
                 {
-                    LogViewer = "Number of rows inserted into PoP_Status table in DB: " + inserted_uptable;
+                    LogViewer = "Number of rows inserted into PoP_Status table in DB: " + inserted_uptable + ".";
                     Write_logFile(LogViewer);
                 }
                 UPNodesList.Clear();
@@ -595,7 +518,7 @@ namespace Echo
             {
                 if (inserted_downtable > 0)
                 {
-                    LogViewer = "Number of rows inserted into CurrentDownPoPs table in DB: " + inserted_downtable;
+                    LogViewer = "Number of rows inserted into CurrentDownPoPs table in DB: " + inserted_downtable + ".";
                     Write_logFile(LogViewer);
                 }
                 DownNodesList.Clear();
@@ -913,6 +836,7 @@ namespace Echo
                 int downnodescount = NodesList.Where(s => (s.Status == "Down" || s.Status == "Unknown")).ToList<Entity>().Count;
                 if (downnodescount != NodesList.Count)
                 {
+                    bool fluctuationFlag4down = true, fluctuationFlag4up = true;
                     bool shouldsendSMS4up = false, shouldsendSMS4down = false;
                     if (TempDownNodesList.Count > 0)
                     {
@@ -923,6 +847,10 @@ namespace Echo
                             shouldsendSMS4down = true;
                         }
                     }
+                    else
+                    {
+                        fluctuationFlag4down = false;
+                    }
 
                     if (UPNodesList.Count > 0)
                     {
@@ -932,6 +860,10 @@ namespace Echo
                         {
                             shouldsendSMS4up = true;
                         }
+                    }
+                    else
+                    {
+                        fluctuationFlag4up = false;
                     }
 
                     if (shouldsendSMS4down && !shouldsendSMS4up)
@@ -954,8 +886,16 @@ namespace Echo
                     else
                     {
                         TempDownNodesList.Clear();
-                        LogViewer = "SMS halted due to status reverse (fluctuation).";
-                        Write_logFile(LogViewer);
+                        if (!fluctuationFlag4down && !fluctuationFlag4up)
+                        {
+                            LogViewer = "SMS may be sent already, so it halted from status changing trigger.";
+                            Write_logFile(LogViewer);
+                        }
+                        else
+                        {
+                            LogViewer = "SMS halted due to status reverse (fluctuation).";
+                            Write_logFile(LogViewer);
+                        }
                     }
 
                     if (shouldsendSMS4up || shouldsendSMS4down)
@@ -1761,7 +1701,7 @@ namespace Echo
         {
             while (RunPingFunctionality)
             {
-                Parallel.For(0, _nodeslist.Count, async (index, loopStatus) =>
+                Parallel.For(0, NodesList.Count, async (index, loopStatus) =>
                 {
                     Ping pingSender = new Ping();
                     try
