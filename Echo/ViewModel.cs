@@ -224,6 +224,7 @@ namespace Echo
             }
         }
 
+        public int NodesCount { get; set; } = 0;
         public int UpDownIndicator { get; set; } = 90;
 
 
@@ -281,17 +282,16 @@ namespace Echo
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(data));
         }
 
-        public IList<Entity> NodesList { get; set; }
+        private IList<Entity> NodesList { get; set; }
 
-        public IList<Entity> DownNodesList { get; set; }
+        private IList<Entity> DownNodesList { get; set; }
 
-        public List<Entity> TempDownNodesList { get; set; }
+        private List<Entity> TempDownNodesList { get; set; }
 
-        public List<Entity> UPNodesList { get; set; }
+        private List<Entity> UPNodesList { get; set; }
 
 
-        public IList<int> PhoneNumberList { get; set; }
-
+        private IList<int> PhoneNumberList { get; set; }
 
         public ObservableCollection<Entity> Nodes { get; set; }
 
@@ -315,6 +315,10 @@ namespace Echo
 
         private async void AppLoadingTimer_Tick(object sender, System.Timers.ElapsedEventArgs e)
         {
+            if (RunningDBSync)
+                return;
+            if (!RunPingFunctionality)
+                return;
             foreach (var item in NodesList)
             {
                 if (item.PingCount < 4)
@@ -330,7 +334,6 @@ namespace Echo
             AppLoadingFlag = false;
 
             AppLoadingTimer.Stop();
-            LogViewer = "System is stable now.";
             List<Entity> downlist = NodesList.Where(s => (s.Status == "Down")).ToList<Entity>();
 
             DownNodesList.Clear();
@@ -349,7 +352,7 @@ namespace Echo
             {
                 await InsertDBAsync();
             }
-            LogViewer = "Completed MySQL Database sync in application side.";
+            LogViewer = "Completed MySQL Database sync in application side. System is stable now.";
             Write_logFile(LogViewer);            
         }
 
@@ -384,10 +387,10 @@ namespace Echo
         {
             if (e.PropertyName == "Status" && !AppLoadingFlag)
             {
-                Entity en = sender as Entity;
+                Entity en = (Entity)sender;
                 if(en.Status == "Down")
                 {
-                    if (!DownNodesList.Contains(en))
+                    if (!TempDownNodesList.Contains(en))
                     {
                         int count = -1;
                         count = await SearchinDBDownListAsync(en);
@@ -397,8 +400,9 @@ namespace Echo
                         {
                             LogViewer = "Monitoring '" + en.Name + "' for [Down] Status.";
                             Write_logFile(LogViewer);
-                            if (!TempDownNodesList.Select(s => s.IPAddress).ToList().Contains(en.IPAddress))
-                                TempDownNodesList.Add(en);
+
+                            TempDownNodesList.Add(en);
+                            
                             if (!PingSenseTimer.Enabled)
                             {
                                 TimerforPingSenseMethod();
@@ -408,7 +412,7 @@ namespace Echo
                         {
                             MessageBox.Show("Down Table in MySQL has duplicate data, remove one manually.", Title, MessageBoxButton.OK, MessageBoxImage.Error);
                         }
-                    }                    
+                    }
                 }
                 else if(en.Status == "Up")
                 {
@@ -422,8 +426,9 @@ namespace Echo
                         {
                             LogViewer = "Monitoring '" + en.Name + "' for [Up] Status.";
                             Write_logFile(LogViewer);
-                            if (!UPNodesList.Select(s => s.IPAddress).ToList().Contains(en.IPAddress))
-                                UPNodesList.Add(en);
+                            
+                            UPNodesList.Add(en);
+                            
                             if (!PingSenseTimer.Enabled)
                             {
                                 TimerforPingSenseMethod();
@@ -837,7 +842,7 @@ namespace Echo
                 Thread.Sleep(5000);
 
                 PingSenseTimer.Stop();
-                List<String> down_ip_list = NodesList.Where(s => (s.Status == "Down")).ToList<Entity>().Select(o => o.IPAddress).ToList();
+                //List<String> down_ip_list = NodesList.Where(s => (s.Status == "Down")).ToList<Entity>().Select(o => o.IPAddress).ToList();
 
                 int downnodescount = NodesList.Where(s => (s.Status == "Down" || s.Status == "Unknown")).ToList<Entity>().Count;
                 if (downnodescount != NodesList.Count)
@@ -846,7 +851,7 @@ namespace Echo
                     bool shouldsendSMS4up = false, shouldsendSMS4down = false;
                     if (TempDownNodesList.Count > 0)
                     {
-                        TempDownNodesList.RemoveAll(item => !down_ip_list.Contains(item.IPAddress));
+                        TempDownNodesList.RemoveAll(item => item.Status != "Down");
 
                         if (TempDownNodesList.Count > 0)
                         {
@@ -860,7 +865,7 @@ namespace Echo
 
                     if (UPNodesList.Count > 0)
                     {
-                        UPNodesList.RemoveAll(item => down_ip_list.Contains(item.IPAddress));
+                        UPNodesList.RemoveAll(item => item.Status != "Up");
 
                         if (UPNodesList.Count > 0)
                         {
@@ -929,8 +934,6 @@ namespace Echo
         {
             string SMSContentString = "";
             DCount = 0;
-            DownNodesList.Clear();
-            DownNodesList = NodesList.Where(s => (s.Status == "Down")).ToList<Entity>();
 
             if (DownNodesList.Count > 0)
             {
@@ -938,8 +941,16 @@ namespace Echo
                 {
                     foreach (var item in TempDownNodesList)
                     {
-                        SMSContentString = SMSContentString + ", " + item.Area;
-                        DCount++;
+                        if(DownNodesList.Contains(item))
+                        {
+                            SMSContentString = SMSContentString + ", " + item.Area;
+                            DCount++;
+                        }
+                        else
+                        {
+                            LogViewer = "Fluctuation found during send SMS for '" + item.Name + "'";
+                            Write_logFile(LogViewer);
+                        }
                     }
                 }
                 foreach (var item in DownNodesList)
@@ -998,6 +1009,9 @@ namespace Echo
             {
                 String SMSContentString_downNodes = "";
                 String SMSContentString_UpNodes = "";
+
+                DownNodesList.Clear();
+                DownNodesList = NodesList.Where(s => (s.Status == "Down")).ToList<Entity>();
                 SMSContentString_downNodes = BuildSMSContent_DownNodes();
                 SMSContentString_UpNodes = BuildSMSContent_UpNodes();
 
@@ -1473,29 +1487,27 @@ namespace Echo
             }
         }
 
-
-
-        public async void LoadingThread()
-        {
-            Task tsk = LoadExcelDataAsync();
-            await Task.WhenAll(tsk);
-            tsk.Dispose();
-        }
-
-        public Task LoadExcelDataAsync()
-        {
-            return Task.Run(() => LoadExcelData());
-        }
-        
-        async void LoadExcelData()
+        public async Task LoadExcelData()
         {
             UILoadingAnimation = true; //for logo
-            var _nodelist = this.NodesList;
-            var _phonelist = this.PhoneNumberList;
-            ImportExcelFile();
+            bool load_or_not = await Task.Run(() => ImportExcelFile());
 
-            if (this.NodesList.Count > 0 && ExcelLoaded)
+
+            UILoadingAnimation = false; //for logo   
+            if (!load_or_not)
             {
+                NodesList.Clear();
+                PhoneNumberList.Clear();
+                NodesCount = 0;
+                ExcelLoaded = false;
+                return;
+            }
+
+            ExcelLoaded = true;
+
+            if (this.NodesList.Count > 0)
+            {
+                NodesCount = NodesList.Count;
                 LogViewer = "Excel file imported. Total number of nodes: " + NodesList.Count.ToString();
                 Write_logFile(LogViewer);
 
@@ -1518,20 +1530,15 @@ namespace Echo
                 {
                     NextSMSTime = DateTime.Now.AddMinutes(SMSInterval).ToLongTimeString();
                     Write_logFile("Next SMS time: " + NextSMSTime);
-                }
+                }                  
 
-
-                UILoadingAnimation = false; //for logo
-
-                await Task.Run(()=> SyncDBAsync());
-
+                await Task.Run(() => SyncDBAsync());
                 Thread.Sleep(5000);
+
+                TimerforAppLoading();
+
                 if (!RunPingFunctionality)
                     RunPingFunctionality = true;
-            }
-            else
-            {
-                UILoadingAnimation = false; //for logo
             }
         }
 
@@ -1553,8 +1560,9 @@ namespace Echo
             }
         }
 
-        private void ImportExcelFile()
+        private bool ImportExcelFile()
         {
+            bool load_or_not = false;
             Excel.Application xlApp = new Excel.Application();
             Excel.Workbook xlWorkBook;
             Excel.Worksheet xlWorkSheet1;
@@ -1621,15 +1629,14 @@ namespace Echo
                     string str = xlWorkSheet2.Cells[i, 1].Value2.ToString();
                     PhoneNumberList.Add(Convert.ToInt32(str));
                 }
-                ExcelLoaded = true;
-
-                TimerforAppLoading();                
+                load_or_not = true;
             }
             catch (Exception ex)
             {
+                load_or_not = false;
                 this.LogViewer = "Error in importing excel: " + ex.Message + " <" + ex.GetType().ToString() + ">";
                 Write_logFile("Error in importing excel: " + ex.Message + " <" + ex.GetType().ToString() + ">");
-                MessageBox.Show("There may be wrong data in excel file. Excel may be partially loaded.\nTo load fully, please correct the excel and load again.", Title, MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("There may be wrong data in excel file.\nPlease correct the excel file and load again.", Title, MessageBoxButton.OK, MessageBoxImage.Error);
             }
             finally
             {
@@ -1641,6 +1648,7 @@ namespace Echo
                 releaseObject(xlWorkBook);
                 releaseObject(xlApp);
             }
+            return load_or_not;
         }
 
 
@@ -1745,19 +1753,19 @@ namespace Echo
                                     NodesList[index].MaxRoundTripTime = reply.RoundtripTime;
                                 }
 
-                                if (NodesList[index].PercentageLoss >= 0 && NodesList[index].PercentageLoss <= 20 && NodesList[index].PingCount >= 4)
+                                if (NodesList[index].PercentageLoss >= 0 && NodesList[index].PercentageLoss < 20 && NodesList[index].PingCount >= 4)
                                 {
                                     NodesList[index].Color_Type2 = Colors.Green;
                                     if(NodesList[index].Status != "Up")
                                         NodesList[index].Status = "Up";
                                 }
-                                else if (NodesList[index].PercentageLoss > 20 && NodesList[index].PercentageLoss <= 50 && NodesList[index].PingCount >= 4)
+                                else if (NodesList[index].PercentageLoss >= 20 && NodesList[index].PercentageLoss < 50 && NodesList[index].PingCount >= 4)
                                 {
                                     NodesList[index].Color_Type2 = Colors.Blue;
-                                    if (NodesList[index].Status != "Suitable")
-                                        NodesList[index].Status = "Suitable";
+                                    if (NodesList[index].Status != "Sufficient")
+                                        NodesList[index].Status = "Sufficient";
                                 }
-                                else if (NodesList[index].PercentageLoss > 50 && NodesList[index].PercentageLoss < this.UpDownIndicator && NodesList[index].PingCount >= 4)
+                                else if (NodesList[index].PercentageLoss >= 50 && NodesList[index].PercentageLoss < this.UpDownIndicator && NodesList[index].PingCount >= 4)
                                 {
                                     NodesList[index].Color_Type2 = Colors.DarkOrange;
                                     if (NodesList[index].Status != "Poor")

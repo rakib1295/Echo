@@ -146,7 +146,7 @@
                         <ColumnDefinition/>
                         <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
-                    <Button x:Name="LoadExcel_btn" Grid.Row="0" Grid.Column="0" Content="Load Excel Data" MouseEnter="LoadBtn_MouseEnter_1"  MouseLeave="LoadBtn_MouseLeave_1" Click="LoadExcel_btn_Click" Margin="5,5"/>
+                    <Button x:Name="LoadExcel_btn" Grid.Row="0" Grid.Column="0" Content="Load Excel Data" Click="LoadExcel_btn_Click" MouseEnter="LoadBtn_MouseEnter_1"  MouseLeave="LoadBtn_MouseLeave_1" Margin="5,5"/>
                     <Button x:Name="Send_btn" IsEnabled="False" Grid.Row="0" Grid.Column="1" Content="Send SMS" MouseEnter="SendBtn_MouseEnter_1"  MouseLeave="SendBtn_MouseLeave_1" Click="Send_btn_Click_1" Margin="5,5"/>
                     <Button x:Name="Ping_btn" IsEnabled="False" Grid.Row="1" Grid.Column="0" Content="Start Ping" MouseEnter="PingBtn_MouseEnter_1"  MouseLeave="PingBtn_MouseLeave_1" Click="Ping_btn_Click" Margin="5,5"/>
                     <Button x:Name="Reset_btn" IsEnabled="False" Grid.Row="1" Grid.Column="1" Content="Refresh Status" MouseEnter="Reset_MouseEnter_1"  MouseLeave="Reset_MouseLeave_1" Click="Reset_btn_Click_1" Margin="5,5"/>

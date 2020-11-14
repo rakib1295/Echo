@@ -127,7 +127,7 @@ namespace Echo
             }
             catch (Exception ex)
             {
-                Show_LogTextblock("Please double click again.");
+                //Show_LogTextblock("Please double click again.");
                 VM.Write_logFile("Exception while double clicking on a " + VM.NodeIdentifier + ": " + ex.Message + " <" + ex.GetType().ToString() + ">");
             }
         }
@@ -246,6 +246,7 @@ namespace Echo
             AllLinksUp_txtbox.Text = Properties.Settings.Default.AllLinksUp_txt;
             SMS_Server_txtbox.Text = Properties.Settings.Default.SMS_Server;
             NodeIdentifier_txtbox.Text = Properties.Settings.Default.NodeIdentifier;
+            prev_NodeIdentifier = Properties.Settings.Default.NodeIdentifier;
 
             DB_ID_txtbox.Text = Properties.Settings.Default.DB_UID;
             DB_psw.Password = Properties.Settings.Default.DB_PW;
@@ -293,7 +294,7 @@ namespace Echo
                 {
                     if (VM.ExcelLoaded)
                     {
-                        LoadExcel_btn.ClearValue(BackgroundProperty);
+                        //LoadExcel_btn.IsEnabled = true;
                         Ping_btn.IsEnabled = true;
                         Ping_btn.Content = "Pause System";
                         Ping_btn.ClearValue(BackgroundProperty);
@@ -302,10 +303,10 @@ namespace Echo
                         Send_btn.IsEnabled = true;
                         Reset_btn.IsEnabled = true;
                     }
-                    else
-                    {
-                        Browse_Btn_Animation();
-                    }
+                    //else
+                    //{
+                    //    Browse_Btn_Animation();
+                    //}
                 }));
             }
             else if (e.PropertyName == "CreditStatus")
@@ -750,7 +751,7 @@ namespace Echo
 
         private void LoadBtn_MouseEnter_1(object sender, MouseEventArgs e)
         {
-            if (VM.NodesList.Count == 0)
+            if (VM.NodesCount == 0)
             {
                 if (VM.Destination_Excel_url == "")
                     Popup_Common_textblock.Text = "Please browse an excel file for IP Address & phone number list.";
@@ -794,14 +795,19 @@ namespace Echo
                         }
                         else
                         {
-                            bool stat = false;
-                            await Task.Run(()=> stat =  VM.CheckDBConnection());
+                            bool dbconnected = await Task.Run(()=> VM.CheckDBConnection());
 
-                            if (stat)
+                            if (dbconnected)
                             {
                                 VM.ExcelLoaded = false;
+                                LoadExcel_btn.IsEnabled = false;
                                 Show_LogTextblock("Trying to load excel file ... .. .");
-                                VM.LoadingThread();
+                                await Task.Run(()=> VM.LoadExcelData());
+                                LoadExcel_btn.IsEnabled = true;
+                                if (VM.ExcelLoaded)
+                                    LoadExcel_btn.ClearValue(BackgroundProperty);
+                                else
+                                    Browse_Btn_Animation();
                             }
                             else
                             {
@@ -818,13 +824,19 @@ namespace Echo
                     }
                     else
                     {
-                        bool stat = false;
-                        await Task.Run(() => stat = VM.CheckDBConnection());
-                        if(stat)
+                        bool dbconnected = await Task.Run(() => VM.CheckDBConnection());
+                        if(dbconnected)
                         {
                             VM.ExcelLoaded = false;
+                            LoadExcel_btn.IsEnabled = false;
+
                             Show_LogTextblock("Trying to load excel file ... .. .");
-                            VM.LoadingThread();
+                            await Task.Run(() => VM.LoadExcelData());
+                            LoadExcel_btn.IsEnabled = true;
+                            if (VM.ExcelLoaded)
+                                LoadExcel_btn.ClearValue(BackgroundProperty);
+                            else
+                                Browse_Btn_Animation();
                         }
                         else
                         {
@@ -881,7 +893,7 @@ namespace Echo
             }
             else
             {
-                Show_LogTextblock("Excel not loaded yet, please wait.....");
+                Show_LogTextblock("Excel not loaded yet.");
             }           
         }
 
@@ -943,7 +955,7 @@ namespace Echo
             {
                 Show_LogTextblock("Send button clicked.");
                 VM.Write_logFile("Send button clicked.");
-                if (VM.NodesList.Count > 0)
+                if (VM.NodesCount > 0)
                 {
                     if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
                     {
@@ -1007,8 +1019,19 @@ namespace Echo
         {
             SaveSettings();
             Popup_Settings.IsOpen = false;
+
+            if (prev_NodeIdentifier != "")
+            {
+                if (VM.AllLinksUpMessage.Contains(prev_NodeIdentifier))
+                {
+                    AllLinksUp_txtbox.Text = VM.AllLinksUpMessage.Replace(prev_NodeIdentifier, VM.NodeIdentifier);
+                }
+            }
+
+            prev_NodeIdentifier = VM.NodeIdentifier;
         }
 
+        string prev_NodeIdentifier = "";
 
         private void ParcentLoss_txtbox_TextChanged_1(object sender, TextChangedEventArgs e)
         {
