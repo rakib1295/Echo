@@ -934,6 +934,8 @@ namespace Echo
         {
             string SMSContentString = "";
             DCount = 0;
+            DownNodesList.Clear();
+            DownNodesList = NodesList.Where(s => (s.Status == "Down")).ToList<Entity>();
 
             if (DownNodesList.Count > 0)
             {
@@ -980,20 +982,28 @@ namespace Echo
 
             if (UPNodesList.Count > 0)
             {
-                UPNodesList.RemoveAll(item => DownNodesList.Contains(item));
+                UPNodesList.RemoveAll(item => item.Status != "Üp");
 
-                foreach (var item in UPNodesList)
+                if (UPNodesList.Count > 0)
                 {
-                    if (item.UpTime == null)
+                    foreach (var item in UPNodesList)
                     {
-                        item.UpTime = DateTime.Now;
+                        if (item.UpTime == null)
+                        {
+                            item.UpTime = DateTime.Now;
+                        }
+                        item.DownTime = null;
+                        if (item.Action_Type == NodeType.SMSENABLED.ToString())
+                        {
+                            SMSContentString = SMSContentString + ", " + item.Area;
+                            UCount++;
+                        }
                     }
-                    item.DownTime = null;
-                    if (item.Action_Type == NodeType.SMSENABLED.ToString())
-                    {
-                        SMSContentString = SMSContentString + ", " + item.Area;
-                        UCount++;
-                    }
+                }
+                else
+                {
+                    LogViewer = "Fluctuation found during send SMS for Up nodes.";
+                    Write_logFile(LogViewer);
                 }
             }
 
@@ -1010,8 +1020,6 @@ namespace Echo
                 String SMSContentString_downNodes = "";
                 String SMSContentString_UpNodes = "";
 
-                DownNodesList.Clear();
-                DownNodesList = NodesList.Where(s => (s.Status == "Down")).ToList<Entity>();
                 SMSContentString_downNodes = BuildSMSContent_DownNodes();
                 SMSContentString_UpNodes = BuildSMSContent_UpNodes();
 
