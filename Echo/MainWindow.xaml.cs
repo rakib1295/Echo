@@ -852,7 +852,7 @@ namespace Echo
         }
 
 
-        private void Ping_btn_Click(object sender, RoutedEventArgs e)
+        private async void Ping_btn_Click(object sender, RoutedEventArgs e)
         {
             Show_LogTextblock("Ping button clicked.");
             VM.Write_logFile("Ping button clicked.");
@@ -884,6 +884,11 @@ namespace Echo
 
                         if (VM.SMS_ON)
                             Send_btn.IsEnabled = true;
+
+                        if (!VM.AppLoadingFlag)
+                        {
+                            await Task.Run(() => VM.CheckforSyncDB());
+                        }
                     }
                     else
                     {

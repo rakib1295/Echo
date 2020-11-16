@@ -34,7 +34,7 @@ namespace Echo
         public bool SMSEvenAllUp = true;
         public String SMS_Server = "";
         public String Title = "";
-        private bool AppLoadingFlag = true;
+        public bool AppLoadingFlag = true;
 
         private String _logviewer = "";
         public string Destination_Excel_url = "";///////////////////////////////////////////
@@ -303,7 +303,13 @@ namespace Echo
 
         private static System.Timers.Timer AppLoadingTimer = new System.Timers.Timer();
 
-        private void TimerforAppLoading()
+        public void CheckforSyncDB()
+        {
+            SyncDBAsync();
+            TimerforSyncing();
+        }
+
+        private void TimerforSyncing()
         {
             AppLoadingFlag = true;
             AppLoadingTimer.Interval = 60000;
@@ -360,7 +366,7 @@ namespace Echo
 
         private void TimerforPingSenseMethod()
         {
-            LogViewer = "Started monitoring ping for "+ PingSensePeriodForSMS + " min(s).";
+            LogViewer = "Started monitoring ping for at least " + (PingSensePeriodForSMS + 1).ToString() + " min(s).";
             Write_logFile(LogViewer);
 
             PingSenseTimer.Interval = 60000;
@@ -493,7 +499,7 @@ namespace Echo
             {
                 if (inserted_uptable > 0)
                 {
-                    LogViewer = "Number of rows inserted into PoP_Status table in DB: " + inserted_uptable + ".";
+                    LogViewer = "Number of rows inserted into 'PoP_Status' table in DB: " + inserted_uptable + ".";
                     Write_logFile(LogViewer);
                 }
                 UPNodesList.Clear();
@@ -528,7 +534,7 @@ namespace Echo
             {
                 if (inserted_downtable > 0)
                 {
-                    LogViewer = "Number of rows inserted into CurrentDownPoPs table in DB: " + inserted_downtable + ".";
+                    LogViewer = "Number of rows inserted into 'CurrentDownPoPs' table in DB: " + inserted_downtable + ".";
                     Write_logFile(LogViewer);
                 }
                 DownNodesList.Clear();
@@ -982,7 +988,7 @@ namespace Echo
 
             if (UPNodesList.Count > 0)
             {
-                UPNodesList.RemoveAll(item => item.Status != "Üp");
+                UPNodesList.RemoveAll(item => item.Status != "Up");
 
                 if (UPNodesList.Count > 0)
                 {
@@ -1543,7 +1549,7 @@ namespace Echo
                 await Task.Run(() => SyncDBAsync());
                 Thread.Sleep(5000);
 
-                TimerforAppLoading();
+                TimerforSyncing();
 
                 if (!RunPingFunctionality)
                     RunPingFunctionality = true;
