@@ -34,7 +34,7 @@ namespace Echo
         public bool SMSEvenAllUp = true;
         public String SMS_Server = "";
         public String Title = "";
-        public bool AppLoadingFlag = true;
+        private bool AppLoadingFlag = true;
 
         private String _logviewer = "";
         public string Destination_Excel_url = "";///////////////////////////////////////////
@@ -303,10 +303,18 @@ namespace Echo
 
         private static System.Timers.Timer AppLoadingTimer = new System.Timers.Timer();
 
-        public void CheckforSyncDB()
+        public async void CheckforSyncDB()
         {
-            SyncDBAsync();
-            TimerforSyncing();
+            if (!AppLoadingFlag)
+            {
+                await Task.Run(() => SyncDBAsync());
+                Thread.Sleep(10000);
+
+                TimerforSyncing();
+            }
+
+            if (!RunPingFunctionality)
+                RunPingFunctionality = true;
         }
 
         private void TimerforSyncing()
@@ -1547,7 +1555,7 @@ namespace Echo
                 }                  
 
                 await Task.Run(() => SyncDBAsync());
-                Thread.Sleep(5000);
+                Thread.Sleep(10000);
 
                 TimerforSyncing();
 

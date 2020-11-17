@@ -876,7 +876,7 @@ namespace Echo
                 {
                     if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
                     {
-                        VM.RunPingFunctionality = true;
+                        //VM.RunPingFunctionality = true;
                         Ping_btn.Content = "Pause System";
                         Reset_btn.IsEnabled = true;
                         StopSMS_btn.IsEnabled = true;
@@ -885,10 +885,8 @@ namespace Echo
                         if (VM.SMS_ON)
                             Send_btn.IsEnabled = true;
 
-                        if (!VM.AppLoadingFlag)
-                        {
-                            await Task.Run(() => VM.CheckforSyncDB());
-                        }
+                        await Task.Run(() => VM.CheckforSyncDB());
+                        
                     }
                     else
                     {
