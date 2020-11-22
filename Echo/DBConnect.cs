@@ -112,8 +112,8 @@ namespace Echo
         {
             int count = -1;
 
-            string query = "INSERT INTO CurrentDownPoPs (IPAddress, Name, Area, DownTime) VALUES('" + IPaddress + "', '" + 
-                Name + "', '" + Area + "', '" + DownTime + "')";
+            string query = "INSERT INTO CurrentDownPoPs (IPAddress, Name, Area, DownTime) VALUES('" + IPaddress + "', '" +
+                MySqlHelper.EscapeString(Name) + "', '" + MySqlHelper.EscapeString(Area) + "', '" + MySqlHelper.EscapeString(DownTime) + "')";
 
             //open connection
             if (this.OpenConnection() == true)
@@ -143,8 +143,8 @@ namespace Echo
             int count = -1;
             string query = "INSERT INTO PoP_Status " +
                 "(Month_Cycle, Date_Cycle, IPAddress, Name, Area, DownTime, UpTime, DownDuration_ddhhmm, Down_TotalHour, Down_Min) " +
-                "VALUES('" + monthCycle + "', '" + dateCycle + "', '" + IPaddress + "', '" + Name + "','" + Area + "', '" + downtime +
-                "','" + uptime + "', '" + DownDuration_ddhhmm + "', '" + Totalhour + "', '" + min + "')";
+                "VALUES('" + monthCycle + "', '" + dateCycle + "', '" + IPaddress + "', '" + MySqlHelper.EscapeString(Name) + "','" + MySqlHelper.EscapeString(Area) + "', '" + MySqlHelper.EscapeString(downtime) +
+                "','" + MySqlHelper.EscapeString(uptime) + "', '" + MySqlHelper.EscapeString(DownDuration_ddhhmm) + "', '" + Totalhour + "', '" + min + "')";
 
             //open connection
             if (this.OpenConnection() == true)
