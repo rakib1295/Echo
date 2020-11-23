@@ -228,6 +228,8 @@ namespace Echo
             Properties.Settings.Default.DB_PW = DB_psw.Password;
             Properties.Settings.Default.DB_Host = DB_Host_Name_txtbox.Text;
             Properties.Settings.Default.DB_Name = DB_Name_txtbox.Text;
+            Properties.Settings.Default.DownTableName = DownTableName_txtbox.Text;
+            Properties.Settings.Default.NodeStatusTableName = UpTableName_txtbox.Text;
 
             Properties.Settings.Default.Save();
         }
@@ -252,6 +254,8 @@ namespace Echo
             DB_psw.Password = Properties.Settings.Default.DB_PW;
             DB_Host_Name_txtbox.Text = Properties.Settings.Default.DB_Host;
             DB_Name_txtbox.Text = Properties.Settings.Default.DB_Name;
+            DownTableName_txtbox.Text = Properties.Settings.Default.DownTableName;
+            UpTableName_txtbox.Text = Properties.Settings.Default.NodeStatusTableName;
         }
 
 
@@ -795,9 +799,9 @@ namespace Echo
                         }
                         else
                         {
-                            bool dbconnected = await Task.Run(()=> VM.CheckDBConnection());
+                            int dbconnected = await Task.Run(()=> VM.CheckDBConnection());
 
-                            if (dbconnected)
+                            if (dbconnected == 3)
                             {
                                 VM.ExcelLoaded = false;
                                 LoadExcel_btn.IsEnabled = false;
@@ -808,6 +812,10 @@ namespace Echo
                                     LoadExcel_btn.ClearValue(BackgroundProperty);
                                 else
                                     Browse_Btn_Animation();
+                            }
+                            else if(dbconnected == 0 || dbconnected == 1 || dbconnected == 2)
+                            {
+                                MessageBox.Show("Please at first create correct tables on MySQL DB.", VM.Title, MessageBoxButton.OK, MessageBoxImage.Information);
                             }
                             else
                             {
@@ -824,8 +832,8 @@ namespace Echo
                     }
                     else
                     {
-                        bool dbconnected = await Task.Run(() => VM.CheckDBConnection());
-                        if(dbconnected)
+                        int dbconnected = await Task.Run(() => VM.CheckDBConnection());
+                        if(dbconnected == 3)
                         {
                             VM.ExcelLoaded = false;
                             LoadExcel_btn.IsEnabled = false;
@@ -837,6 +845,10 @@ namespace Echo
                                 LoadExcel_btn.ClearValue(BackgroundProperty);
                             else
                                 Browse_Btn_Animation();
+                        }
+                        else if (dbconnected == 0 || dbconnected == 1 || dbconnected == 2)
+                        {
+                            MessageBox.Show("Please at first create correct tables on MySQL DB.", VM.Title, MessageBoxButton.OK, MessageBoxImage.Information);
                         }
                         else
                         {
@@ -1153,7 +1165,7 @@ namespace Echo
                 "\n  18. You can stop sending SMS by clicking 'Stop SMS' button." +
                 "\n  19. You can stop sending SMS when all nodes are up by unchecking 'Send SMS even all nodes are up' at SMS Settings." +
                 "\n  20. You can stop sending SMS for a particular node temporarily. To do this, double click on a node and disable its SMS." +
-                "\n  21. Database Connection should be connected properly. In MySQL database, there should be two tables: a) CurrentDownPoPs, b) PoP_Status. These should have proper fields. Contact administrator to change any field manually." +
+                "\n  21. Database Connection should be connected properly. In MySQL database, there should be two tables: a) " + VM.DB_DownTable_Name + ", b) " + VM.DB_UpTable_Name + ". These should have proper fields. Contact administrator to change any field manually." +
                 "\n  22. MOST IMPORTANT: Create new partition on database for new year at end of each year.";
 
 
@@ -1204,6 +1216,8 @@ namespace Echo
             VM.DB_PASSWORD = DB_psw.Password;
         }
 
+
+
         private void DB_Host_Name_TextChanged(object sender, TextChangedEventArgs e)
         {
             VM.DB_Host_Name = DB_Host_Name_txtbox.Text;
@@ -1214,15 +1228,37 @@ namespace Echo
             VM.DatabaseName = DB_Name_txtbox.Text;
         }
 
+        private void DownTableName_txtbox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            VM.DB_DownTable_Name = DownTableName_txtbox.Text;
+        }
+
+        private void UpTableName_txtbox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            VM.DB_UpTable_Name = UpTableName_txtbox.Text;
+        }
+
         private async void DBTest_btn_Click(object sender, RoutedEventArgs e)
         {
-            bool stat = false;
+            int stat;
             DBTest_Txtblk.Text = "";
-            await Task.Run(() => stat = VM.CheckDBConnection());
+            stat = await Task.Run(() => VM.CheckDBConnection());
 
-            if (stat)
+            if (stat==3)
             {
-                DBTest_Txtblk.Text = "DB is Connected :)";
+                DBTest_Txtblk.Text = "DB is Connected & OK :)";
+            }
+            else if(stat == 2)
+            {
+                DBTest_Txtblk.Text = "Down nodes table not found.";
+            }
+            else if (stat == 1)
+            {
+                DBTest_Txtblk.Text = "Nodes status table not found.";
+            }
+            else if (stat == 0)
+            {
+                DBTest_Txtblk.Text = "No table found.";
             }
             else
             {
@@ -1232,15 +1268,19 @@ namespace Echo
 
         private async void DB_Settings_OK_btn_Click(object sender, RoutedEventArgs e)
         {
-            bool stat = false;
+            int stat;
             DBTest_Txtblk.Text = "";
-            await Task.Run(() => stat = VM.CheckDBConnection());
+            stat = await Task.Run(() => VM.CheckDBConnection());
 
-            if (stat)
+            if (stat == 3)
             {
-                DBTest_Txtblk.Text = "DB is Connected :)";
+                DBTest_Txtblk.Text = "MySQL DB is OK :)";
                 SaveDBSettings();
                 Popup_DB_Connection.IsOpen = false;
+            }
+            else if (stat == 0 || stat == 1 || stat == 2)
+            {
+                DBTest_Txtblk.Text = "At first create correct tables.";
             }
             else
             {
@@ -1256,6 +1296,11 @@ namespace Echo
         private void SMS_Server_txtbox_TextChanged(object sender, TextChangedEventArgs e)
         {
             VM.SMS_Server = SMS_Server_txtbox.Text;
+        }
+
+        private void NodeIdentifier_txtbox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            VM.NodeIdentifier = NodeIdentifier_txtbox.Text;
         }
 
         private void Button_Instruct_Click(object sender, RoutedEventArgs e)
@@ -1361,11 +1406,6 @@ namespace Echo
                     }
                 }
             }
-        }
-
-        private void NodeIdentifier_txtbox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            VM.NodeIdentifier = NodeIdentifier_txtbox.Text;
         }
     }
 }

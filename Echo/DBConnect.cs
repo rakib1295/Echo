@@ -11,10 +11,12 @@ namespace Echo
     class DBConnect
     {
         private MySqlConnection connection;
-        public string Host_Name;
-        public string Database;
-        public string UID;
-        public string PASSWORD;
+        public string Host_Name = "";
+        public string Database = "";
+        public string UID = "";
+        public string PASSWORD = "";
+        public string CurrentDownTableName = "";
+        public string NodeStatusTableName = "";
 
         public String Title = "";
 
@@ -71,20 +73,51 @@ namespace Echo
             }
         }
 
-        public bool CheckDBConnection()
+        public int CheckDBConnection()
         {
+            int stat = 0;
+
+            string query1 = "SELECT count(*) FROM information_schema.tables where table_name = '" + MySqlHelper.EscapeString(CurrentDownTableName) + "'";
+            string query2 = "SELECT count(*) FROM information_schema.tables where table_name = '" + MySqlHelper.EscapeString(NodeStatusTableName) + "'";
+
+            int count1 = -1, count2 = -1;
+
+            //Open Connection
             if (this.OpenConnection() == true)
             {
+                //Create Mysql Command
+                MySqlCommand cmd = new MySqlCommand(query1, connection);
+
+                //ExecuteScalar will return one value
+                count1 = int.Parse(cmd.ExecuteScalar() + "");
+                //Create Mysql Command
+                cmd = new MySqlCommand(query2, connection);
+
+                //ExecuteScalar will return one value
+                count2 = int.Parse(cmd.ExecuteScalar() + "");
+                //close Connection
                 this.CloseConnection();
-                return true;
+
+                cmd.Dispose();
+
+                if(count2 == 1)
+                {
+                    count2 = 2;
+                }
+                stat = count1 + count2;
             }
             else
-                return false;
+            {
+                stat = -1;
+            }
+
+
+            return stat;
         }
 
         public int SearchinCurrentDownNodes(string IPaddress)
         {
-            string query = "select count(*) from CurrentDownPoPs where IPAddress = '" + IPaddress + "'";
+            string query = "select count(*) from " + CurrentDownTableName + " where IPAddress = '" + IPaddress + "'";
 
             int Count = -1;
 
@@ -99,7 +132,7 @@ namespace Echo
 
                 //close Connection
                 this.CloseConnection();
-
+                cmd.Dispose();
                 return Count;
             }
             else
@@ -112,7 +145,7 @@ namespace Echo
         {
             int count = -1;
 
-            string query = "INSERT INTO CurrentDownPoPs (IPAddress, Name, Area, DownTime) VALUES('" + IPaddress + "', '" +
+            string query = "INSERT INTO " + CurrentDownTableName + " (IPAddress, Name, Area, DownTime) VALUES('" + IPaddress + "', '" +
                 MySqlHelper.EscapeString(Name) + "', '" + MySqlHelper.EscapeString(Area) + "', '" + MySqlHelper.EscapeString(DownTime) + "')";
 
             //open connection
@@ -133,6 +166,7 @@ namespace Echo
 
                 //close connection
                 this.CloseConnection();
+                cmd.Dispose();
             }
             return count;
         }
@@ -141,7 +175,7 @@ namespace Echo
                         string DownDuration_ddhhmm, string Totalhour, string min, string monthCycle, string dateCycle)
         {
             int count = -1;
-            string query = "INSERT INTO PoP_Status " +
+            string query = "INSERT INTO " + NodeStatusTableName +
                 "(Month_Cycle, Date_Cycle, IPAddress, Name, Area, DownTime, UpTime, DownDuration_ddhhmm, Down_TotalHour, Down_Min) " +
                 "VALUES('" + monthCycle + "', '" + dateCycle + "', '" + IPaddress + "', '" + MySqlHelper.EscapeString(Name) + "','" + MySqlHelper.EscapeString(Area) + "', '" + MySqlHelper.EscapeString(downtime) +
                 "','" + MySqlHelper.EscapeString(uptime) + "', '" + MySqlHelper.EscapeString(DownDuration_ddhhmm) + "', '" + Totalhour + "', '" + min + "')";
@@ -164,6 +198,7 @@ namespace Echo
 
                 //close connection
                 this.CloseConnection();
+                cmd.Dispose();
             }
             return count;
         }
@@ -195,7 +230,7 @@ namespace Echo
         //Select Statusment
         public string SelectDownTimefromDownTable(string IPaddress)
         {
-            string query = "select DownTime from CurrentDownPoPs where IPAddress = '" + IPaddress + "'";
+            string query = "select DownTime from " + CurrentDownTableName + " where IPAddress = '" + IPaddress + "'";
 
             //Create a list to store the result
             string data = "";
@@ -219,6 +254,7 @@ namespace Echo
 
                 //close Connection
                 this.CloseConnection();
+                cmd.Dispose();
 
                 //return list to be displayed
                 return data;
@@ -231,19 +267,20 @@ namespace Echo
 
         public void DeletefromDownTable(string IPaddress)
         {
-            string query = "DELETE FROM CurrentDownPoPs where IPAddress = '" + IPaddress + "'";
+            string query = "DELETE FROM " + CurrentDownTableName + " where IPAddress = '" + IPaddress + "'";
 
             if (this.OpenConnection() == true)
             {
                 MySqlCommand cmd = new MySqlCommand(query, connection);
                 cmd.ExecuteNonQuery();
                 this.CloseConnection();
+                cmd.Dispose();
             }
         }
 
         public List<string> SelectDownNodes()
         {
-            string query = "select IPAddress from CurrentDownPoPs";
+            string query = "select IPAddress from " + CurrentDownTableName;
 
             //Create a list to store the result
             List<string> list = new List<string>();
@@ -267,7 +304,7 @@ namespace Echo
 
                 //close Connection
                 this.CloseConnection();
-
+                cmd.Dispose();
                 //return list to be displayed
                 return list;
             }

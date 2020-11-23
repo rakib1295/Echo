@@ -127,6 +127,14 @@ namespace Echo
             {
                 DB.PASSWORD = this.DB_PASSWORD;
             }
+            else if (e.PropertyName == "DB_DownTable_Name")
+            {
+                DB.CurrentDownTableName = this.DB_DownTable_Name;
+            }
+            else if (e.PropertyName == "DB_UpTable_Name")
+            {
+                DB.NodeStatusTableName = this.DB_UpTable_Name;
+            }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -146,6 +154,8 @@ namespace Echo
         private string _dbname = "";
         private string _db_uid;
         private string _db_pw;
+        private string _db_downtable_name;
+        private string _db_uptable_name;
 
         public string DB_Host_Name
         {
@@ -185,6 +195,28 @@ namespace Echo
                 _db_pw = value;
                 // Call OnPropertyChanged whenever the property is updated
                 OnPropertyChanged("DB_PASSWORD");
+            }
+        }
+
+        public string DB_DownTable_Name
+        {
+            get { return _db_downtable_name; }
+            set
+            {
+                _db_downtable_name = value;
+                // Call OnPropertyChanged whenever the property is updated
+                OnPropertyChanged("DB_DownTable_Name");
+            }
+        }
+
+        public string DB_UpTable_Name
+        {
+            get { return _db_uptable_name; }
+            set
+            {
+                _db_uptable_name = value;
+                // Call OnPropertyChanged whenever the property is updated
+                OnPropertyChanged("DB_UpTable_Name");
             }
         }
 
@@ -384,17 +416,15 @@ namespace Echo
             PingSenseTimer.Start();
         }
 
-        public bool CheckDBConnection()
+        public int CheckDBConnection()
         {
-            bool stat = false;
+            int stat;
             lock (DB)
             {
                 stat = DB.CheckDBConnection();
             }
-            if (stat)
-                return true;
-            else
-                return false;
+
+            return stat;
         }
 
         private async void Node_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -507,7 +537,7 @@ namespace Echo
             {
                 if (inserted_uptable > 0)
                 {
-                    LogViewer = "Number of rows inserted into 'PoP_Status' table in DB: " + inserted_uptable + ".";
+                    LogViewer = "Number of rows inserted into '" + DB_UpTable_Name + "' table in DB: " + inserted_uptable + ".";
                     Write_logFile(LogViewer);
                 }
                 UPNodesList.Clear();
@@ -542,7 +572,7 @@ namespace Echo
             {
                 if (inserted_downtable > 0)
                 {
-                    LogViewer = "Number of rows inserted into 'CurrentDownPoPs' table in DB: " + inserted_downtable + ".";
+                    LogViewer = "Number of rows inserted into '" + DB_DownTable_Name + "' table in DB: " + inserted_downtable + ".";
                     Write_logFile(LogViewer);
                 }
                 DownNodesList.Clear();

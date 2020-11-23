@@ -52,5 +52,11 @@ T-0258312345</Value>
     <Setting Name="NodeIdentifier" Type="System.String" Scope="User">
       <Value Profile="(Default)">link</Value>
     </Setting>
+    <Setting Name="DownTableName" Type="System.String" Scope="User">
+      <Value Profile="(Default)">CurrentDownPoPs</Value>
+    </Setting>
+    <Setting Name="NodeStatusTableName" Type="System.String" Scope="User">
+      <Value Profile="(Default)">PoP_Status</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

@@ -214,5 +214,29 @@ namespace Echo.Properties {
                 this["NodeIdentifier"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("CurrentDownPoPs")]
+        public string DownTableName {
+            get {
+                return ((string)(this["DownTableName"]));
+            }
+            set {
+                this["DownTableName"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("PoP_Status")]
+        public string NodeStatusTableName {
+            get {
+                return ((string)(this["NodeStatusTableName"]));
+            }
+            set {
+                this["NodeStatusTableName"] = value;
+            }
+        }
     }
 }
