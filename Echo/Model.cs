@@ -12,6 +12,10 @@ namespace Echo
 {
     class Entity : INotifyPropertyChanged
     {
+        public Entity()
+        {
+            PhoneNumbersList = new List<int>();
+        }
         public int SuccessPingCount
         { get; set; }
 
@@ -110,6 +114,9 @@ namespace Echo
                 OnPropertyChanged("Status");
             }
         }
+
+        public List<int> PhoneNumbersList 
+        { get; set; }
 
 
         public event PropertyChangedEventHandler PropertyChanged;

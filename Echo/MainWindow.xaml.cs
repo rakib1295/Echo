@@ -116,19 +116,19 @@ namespace Echo
                 {
                     _NodeSMSStatus.Text = "SMS Enabled";
                     _NodeSMSStatus.Foreground = Brushes.Green;
-                    Edit_btn.Content = "Temporarily disable SMS for this " + VM.NodeIdentifier + "?";
+                    Edit_btn.Content = "Temporarily disable SMS for this node?";
                 }
                 else
                 {
                     _NodeSMSStatus.Text = "Ping Only";
                     _NodeSMSStatus.Foreground = Brushes.Red;
-                    Edit_btn.Content = "Enable SMS for this " + VM.NodeIdentifier + " ->";
+                    Edit_btn.Content = "Enable SMS for this node ->";
                 }
             }
             catch (Exception ex)
             {
                 //Show_LogTextblock("Please double click again.");
-                VM.Write_logFile("Exception while double clicking on a " + VM.NodeIdentifier + ": " + ex.Message + " <" + ex.GetType().ToString() + ">");
+                VM.Write_logFile("Exception while double clicking on a node: " + ex.Message + " <" + ex.GetType().ToString() + ">");
             }
         }
 
@@ -141,15 +141,16 @@ namespace Echo
                 _itm.Action_Type = NodeType.PINGONLY.ToString();
                 _NodeSMSStatus.Text = "Ping Only";
                 _NodeSMSStatus.Foreground = Brushes.Red;
-                Edit_btn.Content = "Enable SMS for this " + VM.NodeIdentifier + " ->";
-                Show_LogTextblock(_itm.Name + " has been configured as " + _itm.Action_Type + ". No SMS will be sent for this " + VM.NodeIdentifier + ".");
+                Edit_btn.Content = "Enable SMS for this node ->";
+                Show_LogTextblock(_itm.Name + " has been configured as " + _itm.Action_Type + 
+                    ". No SMS will be sent for this node.");
             }
             else
             {
                 _itm.Action_Type = NodeType.SMSENABLED.ToString();
                 _NodeSMSStatus.Text = "SMS Enabled";
                 _NodeSMSStatus.Foreground = Brushes.Green;
-                Edit_btn.Content = "Temporarily disable SMS for this " + VM.NodeIdentifier + "?";
+                Edit_btn.Content = "Temporarily disable SMS for this node?";
                 Show_LogTextblock(_itm.Name + " has been configured as " + _itm.Action_Type + ".");
             }
         }
@@ -214,10 +215,10 @@ namespace Echo
             Properties.Settings.Default.PingSenseTime = PingSenseTime_txtbox.Text;
             Properties.Settings.Default.MsgHeader = MsgHeader_txtbox.Text;
             Properties.Settings.Default.MsgFooter = MsgFooter_txtbox.Text;
-            Properties.Settings.Default.SMSIfAllUp = (bool)SMSIfAllUp_Checkbox.IsChecked;
-            Properties.Settings.Default.AllLinksUp_txt = AllLinksUp_txtbox.Text;
+            //Properties.Settings.Default.SMSIfAllUp = (bool)SMSIfAllUp_Checkbox.IsChecked;
+            //Properties.Settings.Default.AllLinksUp_txt = AllLinksUp_txtbox.Text;
             Properties.Settings.Default.SMS_Server = SMS_Server_txtbox.Text;
-            Properties.Settings.Default.NodeIdentifier = NodeIdentifier_txtbox.Text;
+            //Properties.Settings.Default.NodeIdentifier = NodeIdentifier_txtbox.Text;
 
             Properties.Settings.Default.Save();
         }
@@ -244,11 +245,11 @@ namespace Echo
             PingSenseTime_txtbox.Text = Properties.Settings.Default.PingSenseTime;
             MsgHeader_txtbox.Text = Properties.Settings.Default.MsgHeader;
             MsgFooter_txtbox.Text = Properties.Settings.Default.MsgFooter;
-            SMSIfAllUp_Checkbox.IsChecked = Properties.Settings.Default.SMSIfAllUp;
-            AllLinksUp_txtbox.Text = Properties.Settings.Default.AllLinksUp_txt;
+            //SMSIfAllUp_Checkbox.IsChecked = Properties.Settings.Default.SMSIfAllUp;
+            //AllLinksUp_txtbox.Text = Properties.Settings.Default.AllLinksUp_txt;
             SMS_Server_txtbox.Text = Properties.Settings.Default.SMS_Server;
-            NodeIdentifier_txtbox.Text = Properties.Settings.Default.NodeIdentifier;
-            prev_NodeIdentifier = Properties.Settings.Default.NodeIdentifier;
+            //NodeIdentifier_txtbox.Text = Properties.Settings.Default.NodeIdentifier;
+            //prev_NodeIdentifier = Properties.Settings.Default.NodeIdentifier;
 
             DB_ID_txtbox.Text = Properties.Settings.Default.DB_UID;
             DB_psw.Password = Properties.Settings.Default.DB_PW;
@@ -262,7 +263,8 @@ namespace Echo
         private void Default_btn_Click(object sender, RoutedEventArgs e)
         {
             Popup_Settings.IsOpen = true;
-            if (MessageBox.Show("Do you want to reset node Status settings data to default value?", VM.Title, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            if (MessageBox.Show("Do you want to reset node Status settings data to default value?", VM.Title, 
+                MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             {
                 Repetitive_SMS_Checkbox.IsChecked = true;
                 ParcentLoss_txtbox.Text = "90";
@@ -270,9 +272,9 @@ namespace Echo
                 PingSenseTime_txtbox.Text = "5";
                 MsgHeader_txtbox.Text = "Dear Sir,";
                 MsgFooter_txtbox.Text = "NOC\nMoghbazar\nT-0258312345";
-                SMSIfAllUp_Checkbox.IsChecked = true;
-                NodeIdentifier_txtbox.Text = "link";
-                AllLinksUp_txtbox.Text = "All " + VM.NodeIdentifier + "s are up now.";
+                //SMSIfAllUp_Checkbox.IsChecked = true;
+                //NodeIdentifier_txtbox.Text = "link";
+                //AllLinksUp_txtbox.Text = "All " + VM.NodeIdentifier + "s are up now.";
                 
                 Show_LogTextblock("Settings data has been reset to default.");
             }
@@ -1035,18 +1037,18 @@ namespace Echo
             SaveSettings();
             Popup_Settings.IsOpen = false;
 
-            if (prev_NodeIdentifier != "")
-            {
-                if (VM.AllLinksUpMessage.Contains(prev_NodeIdentifier))
-                {
-                    AllLinksUp_txtbox.Text = VM.AllLinksUpMessage.Replace(prev_NodeIdentifier, VM.NodeIdentifier);
-                }
-            }
+            //if (prev_NodeIdentifier != "")
+            //{
+            //    if (VM.AllLinksUpMessage.Contains(prev_NodeIdentifier))
+            //    {
+            //        AllLinksUp_txtbox.Text = VM.AllLinksUpMessage.Replace(prev_NodeIdentifier, VM.NodeIdentifier);
+            //    }
+            //}
 
-            prev_NodeIdentifier = VM.NodeIdentifier;
+            //prev_NodeIdentifier = VM.NodeIdentifier;
         }
 
-        string prev_NodeIdentifier = "";
+        //string prev_NodeIdentifier = "";
 
         private void ParcentLoss_txtbox_TextChanged_1(object sender, TextChangedEventArgs e)
         {
@@ -1111,18 +1113,18 @@ namespace Echo
             VM.Message_Footer = MsgFooter_txtbox.Text;
         }
 
-        private void AllLinksUp_txtbox_TextChanged_1(object sender, TextChangedEventArgs e)
-        {
-            VM.AllLinksUpMessage = AllLinksUp_txtbox.Text;
-        }
+        //private void AllLinksUp_txtbox_TextChanged_1(object sender, TextChangedEventArgs e)
+        //{
+        //    VM.AllLinksUpMessage = AllLinksUp_txtbox.Text;
+        //}
 
         private void SMS_Checkbox_Checked_1(object sender, RoutedEventArgs e)
         {
             VM.RepetitiveSMSActive = true;
             if (user_name != null)
             {
-                SMSIfAllUp_Checkbox.IsEnabled = true;
-                AllLinksUp_txtbox.IsEnabled = true;
+                //SMSIfAllUp_Checkbox.IsEnabled = true;
+                //AllLinksUp_txtbox.IsEnabled = true;
                 SMSInterval_txtbox.IsEnabled = true;
                 Show_LogTextblock("Repetitive SMS enabled.");
                 NextSMSAlart_txtblk.Text = "Next SMS Time: Not calculated.";
@@ -1134,8 +1136,8 @@ namespace Echo
             VM.RepetitiveSMSActive = false;
             if (user_name != null)
             {
-                SMSIfAllUp_Checkbox.IsEnabled = false;
-                AllLinksUp_txtbox.IsEnabled = false;
+                //SMSIfAllUp_Checkbox.IsEnabled = false;
+                //AllLinksUp_txtbox.IsEnabled = false;
                 SMSInterval_txtbox.IsEnabled = false;
                 Show_LogTextblock("Repetitive SMS is disabled. SMS will be sent only when Status will be changed.");
                 NextSMSAlart_txtblk.Text = "Repetitive SMS disabled.";
@@ -1177,23 +1179,23 @@ namespace Echo
             Search_Textbox.Text = "";
         }
 
-        private void SMSIfAllUp_Checkbox_Checked_1(object sender, RoutedEventArgs e)
-        {
-            if (!VM.SMSEvenAllUp)
-            {
-                VM.SMSEvenAllUp = true;
-                AllLinksUp_txtbox.IsEnabled = true;
-                Show_LogTextblock("SMS will be sent even all " + VM.NodeIdentifier + "s are up.");
-            }
-        }
+        //private void SMSIfAllUp_Checkbox_Checked_1(object sender, RoutedEventArgs e)
+        //{
+        //    if (!VM.SMSEvenAllUp)
+        //    {
+        //        VM.SMSEvenAllUp = true;
+        //        AllLinksUp_txtbox.IsEnabled = true;
+        //        Show_LogTextblock("SMS will be sent even all " + VM.NodeIdentifier + "s are up.");
+        //    }
+        //}
 
 
-        private void SMSIfAllUp_Checkbox_Unchecked_1(object sender, RoutedEventArgs e)
-        {
-            VM.SMSEvenAllUp = false;
-            AllLinksUp_txtbox.IsEnabled = false;
-            Show_LogTextblock("SMS will not be sent when all " + VM.NodeIdentifier + "s are up.");
-        }
+        //private void SMSIfAllUp_Checkbox_Unchecked_1(object sender, RoutedEventArgs e)
+        //{
+        //    VM.SMSEvenAllUp = false;
+        //    AllLinksUp_txtbox.IsEnabled = false;
+        //    Show_LogTextblock("SMS will not be sent when all " + VM.NodeIdentifier + "s are up.");
+        //}
 
         private void AccTest_btn_Click(object sender, RoutedEventArgs e)
         {
@@ -1298,10 +1300,10 @@ namespace Echo
             VM.SMS_Server = SMS_Server_txtbox.Text;
         }
 
-        private void NodeIdentifier_txtbox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            VM.NodeIdentifier = NodeIdentifier_txtbox.Text;
-        }
+        //private void NodeIdentifier_txtbox_TextChanged(object sender, TextChangedEventArgs e)
+        //{
+        //    VM.NodeIdentifier = NodeIdentifier_txtbox.Text;
+        //}
 
         private void Button_Instruct_Click(object sender, RoutedEventArgs e)
         {
@@ -1362,8 +1364,8 @@ namespace Echo
                     SMS_Server_txtbox.IsEnabled = false;
                     user_name.IsEnabled = false;
                     acc_psw.IsEnabled = false;
-                    SMSIfAllUp_Checkbox.IsEnabled = false;
-                    AllLinksUp_txtbox.IsEnabled = false;
+                    //SMSIfAllUp_Checkbox.IsEnabled = false;
+                    //AllLinksUp_txtbox.IsEnabled = false;
                     Send_btn.IsEnabled = false;
                     WebReply_textblock.Visibility = Visibility.Collapsed;
                     VM.RepetitiveSMSActive = false;
@@ -1392,8 +1394,8 @@ namespace Echo
                         SMS_Server_txtbox.IsEnabled = true;
                         user_name.IsEnabled = true;
                         acc_psw.IsEnabled = true;
-                        SMSIfAllUp_Checkbox.IsEnabled = true;
-                        AllLinksUp_txtbox.IsEnabled = true;
+                        //SMSIfAllUp_Checkbox.IsEnabled = true;
+                        //AllLinksUp_txtbox.IsEnabled = true;
                         SMSInterval_txtbox.IsEnabled = true;
                         WebReply_textblock.Visibility = Visibility.Visible;
                         Send_btn.IsEnabled = true;

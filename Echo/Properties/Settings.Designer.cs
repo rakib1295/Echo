@@ -12,7 +12,7 @@ namespace Echo.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "16.7.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "16.8.1.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -109,30 +109,6 @@ namespace Echo.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool SMSIfAllUp {
-            get {
-                return ((bool)(this["SMSIfAllUp"]));
-            }
-            set {
-                this["SMSIfAllUp"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("All links are up now.")]
-        public string AllLinksUp_txt {
-            get {
-                return ((string)(this["AllLinksUp_txt"]));
-            }
-            set {
-                this["AllLinksUp_txt"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("NOC\r\nMoghbazar\r\nT-0258312345")]
         public string MsgFooter {
             get {
@@ -200,18 +176,6 @@ namespace Echo.Properties {
             }
             set {
                 this["SMS_Server"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("link")]
-        public string NodeIdentifier {
-            get {
-                return ((string)(this["NodeIdentifier"]));
-            }
-            set {
-                this["NodeIdentifier"] = value;
             }
         }
         

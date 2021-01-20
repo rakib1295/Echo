@@ -23,12 +23,6 @@
     <Setting Name="MsgHeader" Type="System.String" Scope="User">
       <Value Profile="(Default)">Dear Sir,</Value>
     </Setting>
-    <Setting Name="SMSIfAllUp" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">True</Value>
-    </Setting>
-    <Setting Name="AllLinksUp_txt" Type="System.String" Scope="User">
-      <Value Profile="(Default)">All links are up now.</Value>
-    </Setting>
     <Setting Name="MsgFooter" Type="System.String" Scope="User">
       <Value Profile="(Default)">NOC
 Moghbazar
@@ -48,9 +42,6 @@ T-0258312345</Value>
     </Setting>
     <Setting Name="SMS_Server" Type="System.String" Scope="User">
       <Value Profile="(Default)">bulksms1.teletalk.com.bd:8091</Value>
-    </Setting>
-    <Setting Name="NodeIdentifier" Type="System.String" Scope="User">
-      <Value Profile="(Default)">link</Value>
     </Setting>
     <Setting Name="DownTableName" Type="System.String" Scope="User">
       <Value Profile="(Default)">CurrentDownPoPs</Value>

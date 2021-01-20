@@ -124,6 +124,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="DBConnect.cs" />
+    <Compile Include="PhoneNumber.cs" />
     <Compile Include="ViewModel.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>

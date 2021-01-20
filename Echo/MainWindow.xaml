@@ -387,8 +387,8 @@
                             <TextBlock Grid.Column="0" Text="Message Footer:" TextWrapping="Wrap" FontWeight="Bold" Margin="5,5"  VerticalAlignment="Bottom"/>
                             <TextBox x:Name="MsgFooter_txtbox" MinHeight="50" AcceptsReturn="True" Grid.Column="1" Margin="0,5,5,5" TextChanged="MsgFooter_txtbox_TextChanged_1"/>
                         </Grid>
-                        <CheckBox Grid.Row="5" x:Name="SMSIfAllUp_Checkbox" IsChecked="True" Content="Send SMS even all nodes are up." Checked="SMSIfAllUp_Checkbox_Checked_1"  Unchecked="SMSIfAllUp_Checkbox_Unchecked_1"/>
-                        <Grid Grid.Row="6"  Background="Wheat">
+                        <!--<CheckBox Grid.Row="5" x:Name="SMSIfAllUp_Checkbox" IsChecked="True" Content="Send SMS even all nodes are up." Checked="SMSIfAllUp_Checkbox_Checked_1"  Unchecked="SMSIfAllUp_Checkbox_Unchecked_1"/>-->
+                        <!--<Grid Grid.Row="6"  Background="Wheat">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition/>
                                 <ColumnDefinition Width="*"/>
@@ -403,7 +403,7 @@
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Node Identifier in SMS: " TextWrapping="Wrap"  FontWeight="Bold" VerticalAlignment="Center"/>
                             <TextBox x:Name="NodeIdentifier_txtbox" Height="25" Margin="5" Grid.Column="1" TextChanged="NodeIdentifier_txtbox_TextChanged"/>
-                        </Grid>
+                        </Grid>-->
                     </Grid>
                     <Grid Grid.Row="3" Background="#FFA7EAA7">
                         <Button x:Name="Default_btn" Content="Restore Default Values for Node Settings->" Click="Default_btn_Click"  Height="25" VerticalAlignment="Bottom" Width="auto" Margin="5,5"/>

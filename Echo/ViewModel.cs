@@ -28,7 +28,7 @@ namespace Echo
         public String Message_Header = "";
         public String Message_Footer = "";
         public String AllLinksUpMessage = "";
-        public String NodeIdentifier = "link";
+        //public String NodeIdentifier = "link";
         public bool RepetitiveSMSActive = true;
         public bool SMS_ON = true;
         public bool SMSEvenAllUp = true;
@@ -51,7 +51,7 @@ namespace Echo
 
             Nodes = new ObservableCollection<Entity>();
             NodesList = new List<Entity>();
-            PhoneNumberList = new List<int>();
+            PhoneNumbersList = new List<PhoneNumber>();
             DownNodesList = new List<Entity>();
             TempDownNodesList = new List<Entity>();
             UPNodesList = new List<Entity>();
@@ -322,8 +322,7 @@ namespace Echo
 
         private List<Entity> UPNodesList { get; set; }
 
-
-        private IList<int> PhoneNumberList { get; set; }
+        private List<PhoneNumber> PhoneNumbersList { get; set; }
 
         public ObservableCollection<Entity> Nodes { get; set; }
 
@@ -825,9 +824,10 @@ namespace Echo
         }
 
 
-        private Task SMSThreadMethodAsync()
+        private async Task SMSThreadMethodAsync()
         {
-            return Task.Run(() => CheckNetBeforeSMS());
+            await Task.Run(() => CheckNetBeforeSMS());
+            await Task.Run(() => InsertDBAsync());
         }
 
         private void CheckNetBeforeSMS()
@@ -935,7 +935,7 @@ namespace Echo
                     }
                     else if (shouldsendSMS4down && shouldsendSMS4up)
                     {
-                        LogViewer = "Firing SMS for both Status changes for some " + NodeIdentifier + "s.";
+                        LogViewer = "Firing SMS for both Status changes for some links.";
                         Write_logFile(LogViewer);
                     }
                     else
@@ -973,24 +973,24 @@ namespace Echo
 
 
 
-        int DCount = 0, UCount = 0;
-        private string BuildSMSContent_DownNodes()
+        //int DCount = 0, UCount = 0;
+        private void BuildDownNodesList()
         {
-            string SMSContentString = "";
-            DCount = 0;
+            //DCount = 0;
             DownNodesList.Clear();
-            DownNodesList = NodesList.Where(s => (s.Status == "Down")).ToList<Entity>();
+            List<Entity> _downNodesList = NodesList.Where(s => (s.Status == "Down")).ToList<Entity>();
 
-            if (DownNodesList.Count > 0)
+            if (_downNodesList.Count > 0)
             {
                 if (TempDownNodesList.Count > 0)
                 {
                     foreach (var item in TempDownNodesList)
                     {
-                        if(DownNodesList.Contains(item))
+                        if(_downNodesList.Contains(item))
                         {
-                            SMSContentString = SMSContentString + ", " + item.Area;
-                            DCount++;
+                            DownNodesList.Add(item);
+                            //SMSContentString = SMSContentString + ", " + item.Area;
+                            //DCount++;
                         }
                         else
                         {
@@ -999,7 +999,7 @@ namespace Echo
                         }
                     }
                 }
-                foreach (var item in DownNodesList)
+                foreach (var item in _downNodesList)
                 {
                     if (item.DownTime == null)
                     {
@@ -1007,22 +1007,20 @@ namespace Echo
                     }
                     item.UpTime = null;
 
-                    if (item.Action_Type == NodeType.SMSENABLED.ToString() && !TempDownNodesList.Contains(item))
+                    if (/*item.Action_Type == NodeType.SMSENABLED.ToString() && */!TempDownNodesList.Contains(item))
                     {
-                        SMSContentString = SMSContentString + ", " + item.Area;
-                        DCount++;
+                        DownNodesList.Add(item);
+                        //SMSContentString = SMSContentString + ", " + item.Area;
+                        //DCount++;
                     }
                 }
             }
             TempDownNodesList.Clear();
-            return SMSContentString;
         }
 
-        private string BuildSMSContent_UpNodes()
+        private void BuildUpNodesList()
         {
-            string SMSContentString = "";
-
-            UCount = 0;
+            //UCount = 0;
 
             if (UPNodesList.Count > 0)
             {
@@ -1037,11 +1035,11 @@ namespace Echo
                             item.UpTime = DateTime.Now;
                         }
                         item.DownTime = null;
-                        if (item.Action_Type == NodeType.SMSENABLED.ToString())
-                        {
-                            SMSContentString = SMSContentString + ", " + item.Area;
-                            UCount++;
-                        }
+                        //if (item.Action_Type == NodeType.SMSENABLED.ToString())
+                        //{
+                        //    //SMSContentString = SMSContentString + ", " + item.Area;
+                        //    UCount++;
+                        //}
                     }
                 }
                 else
@@ -1050,8 +1048,6 @@ namespace Echo
                     Write_logFile(LogViewer);
                 }
             }
-
-            return SMSContentString;
         }
 
 
@@ -1061,22 +1057,60 @@ namespace Echo
             int downnodescount = NodesList.Where(s => (s.Status == "Down" || s.Status == "Unknown")).ToList<Entity>().Count;
             if (downnodescount != NodesList.Count)
             {
-                String SMSContentString_downNodes = "";
-                String SMSContentString_UpNodes = "";
+                //String SMSContentString_downNodes = "";
+                //String SMSContentString_UpNodes = "";
 
-                SMSContentString_downNodes = BuildSMSContent_DownNodes();
-                SMSContentString_UpNodes = BuildSMSContent_UpNodes();
-
-                await Task.Run(() => InsertDBAsync());
+                BuildDownNodesList();
+                BuildUpNodesList();
 
                 if(SMS_ON)
                 {
-                    SMSTrigger(SMSContentString_downNodes, SMSContentString_UpNodes);
+                    IEnumerable<int> phonenumbersforSMS = new List<int>();
+
+                    foreach (var item in DownNodesList)
+                    {
+                        phonenumbersforSMS = phonenumbersforSMS.Union(item.PhoneNumbersList);
+                    }
+
+                    foreach (var item in UPNodesList)
+                    {
+                        phonenumbersforSMS = phonenumbersforSMS.Union(item.PhoneNumbersList);
+                    }
+
+                    phonenumbersforSMS = phonenumbersforSMS.Distinct();
+
+                    PhoneNumbersList.Clear();
+
+                    foreach(var phn in phonenumbersforSMS)
+                    {
+                        PhoneNumber phoneNumber = new PhoneNumber();
+
+                        phoneNumber.Phone = phn;
+
+                        phoneNumber.DownEntities = DownNodesList.Where(x => x.PhoneNumbersList.Contains(phn)).ToList();
+
+                        phoneNumber.UpEntities = UPNodesList.Where(x => x.PhoneNumbersList.Contains(phn)).ToList();
+
+                        PhoneNumbersList.Add(phoneNumber);
+                    }
+
+                    NumberofDestination = PhoneNumbersList.Count;
+                    NumberofFailtoSendSMS = 0;
+                    SentMsgCount = 0;
+
+                    LogViewer = "Sending SMS, please wait ... .. .";
+                    Write_logFile(LogViewer);
+
+                    foreach (var phn in PhoneNumbersList)
+                    {
+
+                        SMSTrigger(phn);
+                    }
                 }
                 else
                 {
-                    DCount = 0;
-                    UCount = 0;
+                    //DCount = 0;
+                    //UCount = 0;
                     timeCounter = 0;
                     if (!RunPingFunctionality)
                         this.RunPingFunctionality = true;
@@ -1084,7 +1118,7 @@ namespace Echo
             }
             else
             {
-                LogViewer = "Error: All " + NodeIdentifier + "s are down, may be something is wrong. Please check internet connection of this Computer.";
+                LogViewer = "Error: All links are down, may be something is wrong. Please check internet connection of this Computer.";
                 Write_logFile(LogViewer);
                 timeCounter = SMSInterval / 2;
                 NextSMSTime = DateTime.Now.AddMinutes(SMSInterval - timeCounter).ToLongTimeString();
@@ -1093,11 +1127,20 @@ namespace Echo
         }
 
 
-        void SMSTrigger(String SMSContentString_DownNodes, String SMSContentString_UpNodes)
+        void SMSTrigger(PhoneNumber phone)
         {
             String SMSContentString = "";
-            NumberofDestination = PhoneNumberList.Count;
-            NumberofFailtoSendSMS = 0;
+
+            string SMSContentString_DownNodes = "";
+
+            foreach(var item in phone.DownEntities)
+            {
+                if (item.Action_Type == NodeType.SMSENABLED.ToString())
+                {
+                    SMSContentString_DownNodes = SMSContentString_DownNodes + ", " + item.Area; /////////////////sms column from excel
+                }
+            }
+
             int contentlen = SMSContentString_DownNodes.Length;
 
             if (SMSContentString_DownNodes != "")
@@ -1105,6 +1148,17 @@ namespace Echo
                 if (SMSContentString_DownNodes[0] == ',')
                 {
                     SMSContentString_DownNodes = SMSContentString_DownNodes.Substring(2, contentlen - 2);
+                }
+            }
+
+
+            string SMSContentString_UpNodes = "";
+
+            foreach (var item in phone.UpEntities)
+            {
+                if (item.Action_Type == NodeType.SMSENABLED.ToString())
+                {
+                    SMSContentString_UpNodes = SMSContentString_UpNodes + ", " + item.Area; /////////////////sms column from excel
                 }
             }
 
@@ -1119,61 +1173,54 @@ namespace Echo
             }
 
 
-            if (UCount + DCount > 0)
+            if (phone.UpEntities.Count + phone.DownEntities.Count > 0)
             {
-                if (UCount > 1)
+                if (phone.UpEntities.Count > 1)
                 {
-                    SMSContentString = SMSContentString_UpNodes + " " + NodeIdentifier + "s are up.\n";
+                    SMSContentString = SMSContentString_UpNodes + " are up.\n";
                 }
-                else if (UCount == 1)
+                else if (phone.UpEntities.Count == 1)
                 {
-                    SMSContentString = SMSContentString_UpNodes + " " + NodeIdentifier + " is up.\n";
+                    SMSContentString = SMSContentString_UpNodes + " is up.\n";
                 }
 
-                if (DCount > 1)
+                if (phone.DownEntities.Count > 1)
                 {
-                    SMSContentString = SMSContentString + SMSContentString_DownNodes + " " + NodeIdentifier + "s are down.\n";
+                    SMSContentString = SMSContentString + SMSContentString_DownNodes + " are down.\n";
                 }
-                else if (DCount == 1)
+                else if (phone.DownEntities.Count == 1)
                 {
-                    SMSContentString = SMSContentString + SMSContentString_DownNodes + " " + NodeIdentifier + " is down.\n";
+                    SMSContentString = SMSContentString + SMSContentString_DownNodes + " is down.\n";
                 }
-                else if(DCount == 0)
-                {
-                    SMSContentString = AllLinksUpMessage + "\n";
-                }
+                //else if(phone.DownEntities.Count == 0)
+                //{
+                //    SMSContentString = AllLinksUpMessage + "\n";
+                //}
             }
-            else
-            {
-                if (SMSEvenAllUp)
-                {
-                    SMSContentString = AllLinksUpMessage + "\n";
-                }
-                else
-                {
-                    LogViewer = "All " + NodeIdentifier + "s are up now, so message will not be sent.";
-                }
-            }
+            //else
+            //{
+            //    if (SMSEvenAllUp)
+            //    {
+            //        SMSContentString = AllLinksUpMessage + "\n";
+            //    }
+            //    else
+            //    {
+            //        LogViewer = "All " + NodeIdentifier + "s are up now, so message will not be sent.";
+            //    }
+            //}
 
             if (SMSContentString != "")
             {
-                LogViewer = SMSContentString.Substring(0, SMSContentString.Length - 1);
-                Write_logFile(LogViewer);
-
+                Write_logFile("Phone: " + phone.Phone.ToString() + ", SMS :" + 
+                    SMSContentString.Substring(0, SMSContentString.Length - 1).Replace("\n" , " "));
 
                 SMSContentString = Message_Header + "\n" + SMSContentString + Message_Footer;
 
 
-                LogViewer = "Sending SMS, please wait ... .. .";
-                Write_logFile(LogViewer);
-                SentMsgCount = 0;
-                foreach (var phnNum in PhoneNumberList)
+                if (NumberofFailtoSendSMS == 0)
                 {
-                    if (NumberofFailtoSendSMS == 0)
-                    {
-                        HttpCalltoTeletalk(phnNum, SMSContentString);
-                    }
-                }
+                    HttpCalltoTeletalk(phone.Phone, SMSContentString);
+                }                
             }
         }
 
@@ -1372,8 +1419,8 @@ namespace Echo
 
                         Write_logFile("Sent SMS today, total number of SMS: " + NumberofDestination.ToString() + "."); ///////////////////////////////////////////////////////////////
 
-                        DCount = 0;
-                        UCount = 0;
+                        //DCount = 0;
+                        //UCount = 0;
                         SentMsgCount = 0;
                         timeCounter = 0;
                         NextSMSTime = DateTime.Now.AddMinutes(SMSInterval).ToLongTimeString();
@@ -1549,7 +1596,7 @@ namespace Echo
             if (!load_or_not)
             {
                 NodesList.Clear();
-                PhoneNumberList.Clear();
+                PhoneNumbersList.Clear();
                 NodesCount = 0;
                 ExcelLoaded = false;
                 return;
@@ -1573,9 +1620,6 @@ namespace Echo
                        where _itm.Action_Type == NodeType.PINGONLY.ToString()
                        select _itm).Count();
                 LogViewer = "Number of nodes which will ping only: " + cnt.ToString();
-                Write_logFile(LogViewer);
-
-                LogViewer = "Number of Phone numbers: " + PhoneNumberList.Count.ToString();
                 Write_logFile(LogViewer);
 
                 if (timeCounter == 0)
@@ -1626,61 +1670,86 @@ namespace Echo
 
             try
             {
+                NodesList.Clear();
+
                 Excel.Range last = xlWorkSheet1.Cells.SpecialCells(Excel.XlCellType.xlCellTypeLastCell, Type.Missing);
 
 
                 int lastUsedRow = last.Row;
                 int lastUsedColumn = last.Column;
 
-                NodesList.Clear();
-
-                for (int i = 2; i <= lastUsedRow; i++)
+                int rowcount = 0;
+                foreach (Excel.Range row in xlWorkSheet1.Rows)
                 {
-                    Entity _nd = new Entity();
-                    _nd.PingCount = 0;
-                    _nd.PingFailed = 0;
-                    _nd.SuccessPingCount = 0;
-                    _nd.PercentageLoss = 0;
-                    _nd.AverageRoundTripTime = 0;
-                    _nd.MaxRoundTripTime = 0;
-                    _nd.MinRoundTripTime = 999999;
+                    rowcount++;
+                    if (rowcount == lastUsedRow + 1)
+                        break;
 
-
-                    string str = xlWorkSheet1.Cells[i, 1].Value2.ToString();
-                    _nd.IPAddress = str;
-
-                    _nd.Name = xlWorkSheet1.Cells[i, 2].Value2.ToString();
-
-                    str = xlWorkSheet1.Cells[i, 3].Value2.ToString();
-                    if (str.ToUpper().Contains("SMSENABLED"))
+                    if (rowcount > 1)
                     {
-                        _nd.Action_Type = NodeType.SMSENABLED.ToString();
+                        Entity _nd = new Entity();
+                        _nd.PingCount = 0;
+                        _nd.PingFailed = 0;
+                        _nd.SuccessPingCount = 0;
+                        _nd.PercentageLoss = 0;
+                        _nd.AverageRoundTripTime = 0;
+                        _nd.MaxRoundTripTime = 0;
+                        _nd.MinRoundTripTime = 999999;
+
+                        foreach (Excel.Range cell in row.Cells)
+                        {
+                            if(cell.Address.Contains("A"))
+                                _nd.IPAddress = cell.Value2.ToString();
+                            else if (cell.Address.Contains("B"))
+                                _nd.Name = cell.Value2.ToString();
+                            else if (cell.Address.Contains("C"))
+                            {
+                                string str = cell.Value2.ToString();
+                                if (str.ToUpper().Contains("SMSENABLED"))
+                                {
+                                    _nd.Action_Type = NodeType.SMSENABLED.ToString();
+                                }
+                                else
+                                {
+                                    _nd.Action_Type = NodeType.PINGONLY.ToString();
+                                }
+                            }
+                            else if (cell.Address.Contains("D"))
+                                _nd.Area = cell.Value2.ToString();
+
+                            else if (cell.Value2 != null)
+                            {
+                                _nd.PhoneNumbersList.Add(Convert.ToInt32(cell.Value2.ToString()));
+                            }                            
+                            else
+                                break;
+                        }
+
+
+                        _nd.PropertyChanged -= Node_PropertyChanged;
+                        _nd.PropertyChanged += Node_PropertyChanged;
+
+                        NodesList.Add(_nd);
                     }
-                    else if (!str.ToUpper().Contains("SMSENABLED"))
-                    {
-                        _nd.Action_Type = NodeType.PINGONLY.ToString();
-                    }
-
-                    _nd.Area = xlWorkSheet1.Cells[i, 4].Value2.ToString();
-
-                    _nd.PropertyChanged -= Node_PropertyChanged;
-                    _nd.PropertyChanged += Node_PropertyChanged;
-
-                    NodesList.Add(_nd);
                 }
 
+                //for (int i = 2; i <= lastUsedRow; i++)
+                //{
 
-                last = xlWorkSheet2.Cells.SpecialCells(Excel.XlCellType.xlCellTypeLastCell, Type.Missing);
+                //}
 
-                lastUsedRow = last.Row;
-                lastUsedColumn = last.Column;
+                //last = xlWorkSheet2.Cells.SpecialCells(Excel.XlCellType.xlCellTypeLastCell, Type.Missing);
 
-                PhoneNumberList.Clear();
-                for (int i = 2; i <= lastUsedRow; i++)
-                {
-                    string str = xlWorkSheet2.Cells[i, 1].Value2.ToString();
-                    PhoneNumberList.Add(Convert.ToInt32(str));
-                }
+                //lastUsedRow = last.Row;
+                //lastUsedColumn = last.Column;
+
+                //PhoneNumberList.Clear();
+                //for (int i = 2; i <= lastUsedRow; i++)
+                //{
+                //    string str = xlWorkSheet2.Cells[i, 1].Value2.ToString();
+                //    PhoneNumberList.Add(Convert.ToInt32(str));
+                //}
+
                 load_or_not = true;
             }
             catch (Exception ex)
