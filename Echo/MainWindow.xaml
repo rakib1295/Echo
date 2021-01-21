@@ -270,125 +270,123 @@
             </StackPanel>
         </Popup>
 
-        <Popup x:Name="Popup_Settings" HorizontalAlignment="Left" Placement="Mouse"  VerticalAlignment="Top" IsOpen="False" Width="340">
-            <ScrollViewer Height="400">
-                <Grid Background="LightSkyBlue">
+        <Popup x:Name="Popup_Settings" HorizontalAlignment="Left" Placement="Mouse"  VerticalAlignment="Top" IsOpen="False" Width="340" Height="500">
+            <Grid Background="LightSkyBlue">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="8*"/>
+                    <RowDefinition Height="3*"/>
+                    <RowDefinition Height="12*"/>
+                    <RowDefinition Height="2*"/>
+                    <RowDefinition Height="2*"/>
+                    <!--<RowDefinition Height="7*"/>-->
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0"  Margin="0,0" Background="#FFA7EAA7">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="8*"/>
-                        <RowDefinition Height="3*"/>
-                        <RowDefinition Height="20*"/>
-                        <RowDefinition Height="2*"/>
-                        <RowDefinition Height="2*"/>
-                        <RowDefinition Height="7*"/>
+                        <RowDefinition Height="20"/>
+                        <RowDefinition Height="20"/>
+                        <RowDefinition/>
+                        <RowDefinition Height="40"/>
+                        <RowDefinition Height="27"/>
                     </Grid.RowDefinitions>
-                    <Grid Grid.Row="0"  Margin="0,0" Background="#FFA7EAA7">
+                    <TextBlock Grid.Row="0" Text="Teletalk Bulksms Account Settings" FontWeight="Bold"/>
+                    <CheckBox Grid.Row="1" x:Name="Repetitive_SMS_Checkbox" IsChecked="True"  Content="If uncheck, SMS active only when Status will be changed" Checked="SMS_Checkbox_Checked_1" Unchecked="SMS_Checkbox_Unchecked_1"/>
+                    <Grid Grid.Row="2">
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="20"/>
-                            <RowDefinition Height="20"/>
                             <RowDefinition/>
-                            <RowDefinition Height="40"/>
-                            <RowDefinition Height="27"/>
-                        </Grid.RowDefinitions>
-                        <TextBlock Grid.Row="0" Text="Teletalk Bulksms Account Settings" FontWeight="Bold"/>
-                        <CheckBox Grid.Row="1" x:Name="Repetitive_SMS_Checkbox" IsChecked="True"  Content="If uncheck, SMS active only when Status will be changed" Checked="SMS_Checkbox_Checked_1" Unchecked="SMS_Checkbox_Unchecked_1"/>
-                        <Grid Grid.Row="2">
-                            <Grid.RowDefinitions>
-                                <RowDefinition/>
-                                <RowDefinition/>
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="9*"/>
-                                <ColumnDefinition Width="104*"/>
-                                <ColumnDefinition Width="148*"/>
-                                <ColumnDefinition Width="79*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="Username:" Grid.Row="0" Grid.Column="0" Margin="5,5,0,0" FontSize="10" Grid.ColumnSpan="2" FontWeight="Bold"/>
-                            <TextBox x:Name="user_name" TextChanged="user_name_TextChanged_1" Grid.Row="0" Grid.Column="2" HorizontalAlignment="Left"  Margin="5,0,0,2" Width="100" FontSize="10"/>
-
-                            <TextBlock Text="Password:"  Grid.Row="1" Grid.Column="0" Margin="5,5,0,0" FontSize="10" Grid.ColumnSpan="2" FontWeight="Bold"/>
-                            <PasswordBox x:Name="acc_psw" PasswordChar="*" PasswordChanged="acc_psw_PasswordChanged_1" Width="100" HorizontalAlignment="Left" Grid.Row="1" Grid.Column="2" Margin="5,2,0,0" FontSize="10"/>
-                        </Grid>
-                        <Grid Grid.Row="3" Margin="5">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="70"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="SMS Server: " FontWeight="Bold"/>
-                            <TextBox x:Name="SMS_Server_txtbox" Grid.Column="1" TextWrapping="Wrap" TextChanged="SMS_Server_txtbox_TextChanged"/>
-                        </Grid>
-                        <Grid Grid.Row="4" Margin="0,5,0,0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition/>
-                                <ColumnDefinition/>
-                            </Grid.ColumnDefinitions>
-                            <Button x:Name="AccTest_btn" Grid.Column="0" Width="100" Margin="0,0,0,1" Content="Test Account" Click="AccTest_btn_Click"/>
-                            <TextBlock x:Name="AccTest_Txtblk" Grid.Column="1"/>
-                        </Grid>
-                    </Grid>
-
-                    <Grid Grid.Row="1" Margin="0,10,0,0" Background="Wheat">
-                        <Grid.RowDefinitions>
-                            <RowDefinition  Height="auto"/>
                             <RowDefinition/>
                         </Grid.RowDefinitions>
-                        <TextBlock Grid.Row="0" Text="Node Status Settings" FontWeight="Bold"/>
-                        <Grid Grid.Row="1">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition/>
-                                <ColumnDefinition Width="40"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0"  Margin="5,0"  FontSize="12" TextWrapping="Wrap" Text="Minimum packet loss, which indicates the link is down (in %)"  />
-                            <TextBox Grid.Column="1" x:Name="ParcentLoss_txtbox" TextChanged="ParcentLoss_txtbox_TextChanged_1" Margin="5,0"  Height="25"/>
-                        </Grid>
-                    </Grid>
-                    <Grid Grid.Row="2"  Margin="0,10,0,0" Background="#FFA7EAA7">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="20"/>
-                            <RowDefinition Height="2*"/>
-                            <RowDefinition Height="2*"/>
-                            <RowDefinition Height="2*"/>
-                            <RowDefinition Height="4*"/>
-                            <RowDefinition Height="4*"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="3*"/>
-                        </Grid.RowDefinitions>
-                        <TextBlock Grid.Row="0" Text="SMS Settings" FontWeight="Bold"/>
-                        <Grid Grid.Row="1">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition/>
-                                <ColumnDefinition/>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="9*"/>
+                            <ColumnDefinition Width="104*"/>
+                            <ColumnDefinition Width="148*"/>
+                            <ColumnDefinition Width="79*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Username:" Grid.Row="0" Grid.Column="0" Margin="5,5,0,0" FontSize="10" Grid.ColumnSpan="2" FontWeight="Bold"/>
+                        <TextBox x:Name="user_name" TextChanged="user_name_TextChanged_1" Grid.Row="0" Grid.Column="2" HorizontalAlignment="Left"  Margin="5,0,0,2" Width="100" FontSize="10"/>
 
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" FontSize="12" TextWrapping="Wrap" Text="SMS interval (in Minutes):" Margin="5,5,19,0" />
-                            <TextBox Grid.Column="1"  x:Name="SMSInterval_txtbox" TextChanged="SMSInterval_txtbox_TextChanged_1" Width="50"  Height="25" />
-                        </Grid>
-                        <Grid Grid.Row="2"  Background="Wheat">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition/>
-                                <ColumnDefinition Width="40"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" FontSize="12" TextWrapping="Wrap" Text="Period of Refresh time and ping sense time. Value shoud be between 3 to 10 (in minutes)" Margin="5,0" />
-                            <TextBox Grid.Column="1" x:Name="PingSenseTime_txtbox" TextChanged="PingSenseTime_txtbox_TextChanged_1"  Margin="5,0"  Height="25"/>
-                        </Grid>
-                        <Grid Grid.Row="3">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition/>
-                                <ColumnDefinition Width="2*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" TextWrapping="Wrap" Text="Message Header:" FontWeight="Bold" Margin="5,5"  VerticalAlignment="Top"/>
-                            <TextBox x:Name="MsgHeader_txtbox" MinHeight="50" AcceptsReturn="True" Grid.Column="1" Margin="0,5,5,5" TextChanged="MsgHeader_txtbox_TextChanged_1"/>
-                        </Grid>
-                        <Grid Grid.Row="4"  Background="Wheat">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition/>
-                                <ColumnDefinition Width="2*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="Message Footer:" TextWrapping="Wrap" FontWeight="Bold" Margin="5,5"  VerticalAlignment="Bottom"/>
-                            <TextBox x:Name="MsgFooter_txtbox" MinHeight="50" AcceptsReturn="True" Grid.Column="1" Margin="0,5,5,5" TextChanged="MsgFooter_txtbox_TextChanged_1"/>
-                        </Grid>
-                        <!--<CheckBox Grid.Row="5" x:Name="SMSIfAllUp_Checkbox" IsChecked="True" Content="Send SMS even all nodes are up." Checked="SMSIfAllUp_Checkbox_Checked_1"  Unchecked="SMSIfAllUp_Checkbox_Unchecked_1"/>-->
-                        <!--<Grid Grid.Row="6"  Background="Wheat">
+                        <TextBlock Text="Password:"  Grid.Row="1" Grid.Column="0" Margin="5,5,0,0" FontSize="10" Grid.ColumnSpan="2" FontWeight="Bold"/>
+                        <PasswordBox x:Name="acc_psw" PasswordChar="*" PasswordChanged="acc_psw_PasswordChanged_1" Width="100" HorizontalAlignment="Left" Grid.Row="1" Grid.Column="2" Margin="5,2,0,0" FontSize="10"/>
+                    </Grid>
+                    <Grid Grid.Row="3" Margin="5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="70"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="SMS Server: " FontWeight="Bold"/>
+                        <TextBox x:Name="SMS_Server_txtbox" Grid.Column="1" TextWrapping="Wrap" TextChanged="SMS_Server_txtbox_TextChanged"/>
+                    </Grid>
+                    <Grid Grid.Row="4" Margin="0,5,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <Button x:Name="AccTest_btn" Grid.Column="0" Width="100" Margin="0,0,0,1" Content="Test Account" Click="AccTest_btn_Click"/>
+                        <TextBlock x:Name="AccTest_Txtblk" Grid.Column="1"/>
+                    </Grid>
+                </Grid>
+
+                <Grid Grid.Row="1" Margin="0,10,0,0" Background="Wheat">
+                    <Grid.RowDefinitions>
+                        <RowDefinition  Height="auto"/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="Node Status Settings" FontWeight="Bold"/>
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition Width="40"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0"  Margin="5,0"  FontSize="12" TextWrapping="Wrap" Text="Minimum packet loss, which indicates the link is down (in %)"  />
+                        <TextBox Grid.Column="1" x:Name="ParcentLoss_txtbox" TextChanged="ParcentLoss_txtbox_TextChanged_1" Margin="5,0"  Height="25"/>
+                    </Grid>
+                </Grid>
+                <Grid Grid.Row="2"  Margin="0,10,0,0" Background="#FFA7EAA7">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="20"/>
+                        <RowDefinition Height="2*"/>
+                        <RowDefinition Height="2*"/>
+                        <RowDefinition Height="4*"/>
+                        <RowDefinition Height="4*"/>
+                        <!--<RowDefinition Height="4*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="3*"/>-->
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="SMS Settings" FontWeight="Bold"/>
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" FontSize="12" TextWrapping="Wrap" Text="SMS interval (in Minutes):" Margin="5,5,19,0" />
+                        <TextBox Grid.Column="1"  x:Name="SMSInterval_txtbox" TextChanged="SMSInterval_txtbox_TextChanged_1" Width="50"  Height="25" />
+                    </Grid>
+                    <Grid Grid.Row="2"  Background="Wheat">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition Width="40"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" FontSize="12" TextWrapping="Wrap" Text="Period of Refresh time and ping sense time. Value shoud be between 3 to 10 (in minutes)" Margin="5,0" />
+                        <TextBox Grid.Column="1" x:Name="PingSenseTime_txtbox" TextChanged="PingSenseTime_txtbox_TextChanged_1"  Margin="5,0"  Height="25"/>
+                    </Grid>
+                    <Grid Grid.Row="3">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition Width="2*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" TextWrapping="Wrap" Text="Message Header:" FontWeight="Bold" Margin="5,5"  VerticalAlignment="Top"/>
+                        <TextBox x:Name="MsgHeader_txtbox" MinHeight="50" AcceptsReturn="True" Grid.Column="1" Margin="0,5,5,5" TextChanged="MsgHeader_txtbox_TextChanged_1"/>
+                    </Grid>
+                    <Grid Grid.Row="4"  Background="Wheat">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition Width="2*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Message Footer:" TextWrapping="Wrap" FontWeight="Bold" Margin="5,5"  VerticalAlignment="Bottom"/>
+                        <TextBox x:Name="MsgFooter_txtbox" MinHeight="50" AcceptsReturn="True" Grid.Column="1" Margin="0,5,5,5" TextChanged="MsgFooter_txtbox_TextChanged_1"/>
+                    </Grid>
+                    <!--<CheckBox Grid.Row="5" x:Name="SMSIfAllUp_Checkbox" IsChecked="True" Content="Send SMS even all nodes are up." Checked="SMSIfAllUp_Checkbox_Checked_1"  Unchecked="SMSIfAllUp_Checkbox_Unchecked_1"/>-->
+                    <!--<Grid Grid.Row="6"  Background="Wheat">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition/>
                                 <ColumnDefinition Width="*"/>
@@ -404,14 +402,13 @@
                             <TextBlock Grid.Column="0" Text="Node Identifier in SMS: " TextWrapping="Wrap"  FontWeight="Bold" VerticalAlignment="Center"/>
                             <TextBox x:Name="NodeIdentifier_txtbox" Height="25" Margin="5" Grid.Column="1" TextChanged="NodeIdentifier_txtbox_TextChanged"/>
                         </Grid>-->
-                    </Grid>
-                    <Grid Grid.Row="3" Background="#FFA7EAA7">
-                        <Button x:Name="Default_btn" Content="Restore Default Values for Node Settings->" Click="Default_btn_Click"  Height="25" VerticalAlignment="Bottom" Width="auto" Margin="5,5"/>
-
-                    </Grid>
-                    <Button x:Name="Settings_OK_btn" Grid.Row="4" Content="Save &amp; Close" Click="Settings_OK_btn_Click_1" Height="25" VerticalAlignment="Bottom" Width="100" Margin="5,5"/>
                 </Grid>
-            </ScrollViewer>
+                <Grid Grid.Row="3" Background="#FFA7EAA7">
+                    <Button x:Name="Default_btn" Content="Restore Default Values for Node Settings->" Click="Default_btn_Click"  Height="25" VerticalAlignment="Bottom" Width="auto" Margin="5,5"/>
+
+                </Grid>
+                <Button x:Name="Settings_OK_btn" Grid.Row="4" Content="Save &amp; Close" Click="Settings_OK_btn_Click_1" Height="25" VerticalAlignment="Bottom" Width="100" Margin="5,5"/>
+            </Grid>
         </Popup>
 
         <Popup x:Name="Popup_DB_Connection" HorizontalAlignment="Left" Placement="Mouse" VerticalAlignment="Top" IsOpen="False" Margin="0,0,0,0" Width="340" Height="420">
