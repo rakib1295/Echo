@@ -253,7 +253,7 @@
             </Grid.ColumnDefinitions>
             <Image Grid.Column="0" Source="Images/imageedit_with_name_d9F_icon.ico" HorizontalAlignment="Left" Opacity=".5" Margin="5,0,0,2"/>
             <TextBlock Grid.Column="1" x:Name="_version_txtblk" TextAlignment="Center" HorizontalAlignment="Center" TextWrapping="Wrap" VerticalAlignment="Center" Width="282" Height="30"
-                       FontSize="9"><Run x:Name="run1" Text="BTCL &#169; 2018 All Rights Reserved."/><LineBreak/><Run x:Name="versionNumber"/></TextBlock>
+                       FontSize="9"><Run x:Name="_copyright"/><LineBreak/><Run x:Name="versionNumber"/></TextBlock>
 
             <TextBlock Grid.Column="2" x:Name="credit_label" HorizontalAlignment="Right" TextAlignment="Right" VerticalAlignment="Center" Margin="5,0,10,0">
                 <Hyperlink x:Name="_credit_link" NavigateUri="https://www.linkedin.com/in/md-rakib-subaid/" RequestNavigate="Hyperlink_RequestNavigate" FontFamily="Lucida Calligraphy" FontSize="12">

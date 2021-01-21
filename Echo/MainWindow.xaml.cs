@@ -68,6 +68,9 @@ namespace Echo
             view.Filter = UserFilter;
             VM.Title = this.Title;
 
+
+            _copyright.Text = "BTCL " + Convert.ToChar(169) + " 2018-" + DateTime.Now.Year.ToString() + " All Rights Reserved.";
+
 #if !DEBUG
             versionNumber.Text = "Version: " + ApplicationDeployment.CurrentDeployment.CurrentVersion.ToString(4);
 #endif

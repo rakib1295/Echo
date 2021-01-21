@@ -608,7 +608,7 @@ namespace Echo
                     int Totalhours = (int)ts.TotalHours;
                     int min = ts.Minutes;
                     
-                    string monthCycle = en.UpTime.Value.Year.ToString() + en.UpTime.Value.Month.ToString();
+                    string monthCycle = en.UpTime.Value.Year.ToString() + en.UpTime.Value.Month.ToString("00");
                     string dateCycle = en.UpTime.Value.Day.ToString();
                     count = DB.InsertUpNodes(en.IPAddress, en.Name, en.Area, dt.ToString("yyyy-MM-dd HH:mm:ss"), en.UpTime.Value.ToString("yyyy-MM-dd HH:mm:ss"), 
                         duration_ddhhmm, Totalhours.ToString(), min.ToString(), monthCycle, dateCycle);
