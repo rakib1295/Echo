@@ -97,7 +97,7 @@ namespace Echo.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("Dear Sir,")]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
         public string MsgHeader {
             get {
                 return ((string)(this["MsgHeader"]));
@@ -109,7 +109,7 @@ namespace Echo.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("NOC\r\nMoghbazar\r\nT-0258312345")]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
         public string MsgFooter {
             get {
                 return ((string)(this["MsgFooter"]));

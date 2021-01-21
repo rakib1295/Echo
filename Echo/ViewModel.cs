@@ -27,7 +27,7 @@ namespace Echo
         public String Password_String = "";
         public String Message_Header = "";
         public String Message_Footer = "";
-        public String AllLinksUpMessage = "";
+        //public String AllLinksUpMessage = "";
         //public String NodeIdentifier = "link";
         public bool RepetitiveSMSActive = true;
         public bool SMS_ON = true;
@@ -923,13 +923,13 @@ namespace Echo
 
                     if (shouldsendSMS4down && !shouldsendSMS4up)
                     {
-                        LogViewer = "Firing SMS for node changing to Down status.";
+                        LogViewer = "Firing SMS for node changing to [Down] status.";
                         Write_logFile(LogViewer);
                     }
                     else if (!shouldsendSMS4down && shouldsendSMS4up)
                     {
                         TempDownNodesList.Clear();
-                        LogViewer = "Firing SMS for node changing to Up status.";
+                        LogViewer = "Firing SMS for node changing to [Up] status.";
 
                         Write_logFile(LogViewer);
                     }
@@ -971,12 +971,19 @@ namespace Echo
             }
         }
 
-
-
-        //int DCount = 0, UCount = 0;
-        private void BuildDownNodesList()
+        private bool BuildDownNodesList()
         {
-            //DCount = 0;
+            bool ShouldSendSMS;
+
+            if(TempDownNodesList.Count == 0 && UPNodesList.Count == 0)
+            {
+                ShouldSendSMS = true;
+            }
+            else
+            {
+                ShouldSendSMS = false;
+            }
+
             DownNodesList.Clear();
             List<Entity> _downNodesList = NodesList.Where(s => (s.Status == "Down")).ToList<Entity>();
 
@@ -986,11 +993,13 @@ namespace Echo
                 {
                     foreach (var item in TempDownNodesList)
                     {
+                        if(item.PhoneNumbersList.Count > 0 && item.Action_Type == NodeType.SMSENABLED.ToString())
+                        {
+                            ShouldSendSMS = true;
+                        }
                         if(_downNodesList.Contains(item))
                         {
                             DownNodesList.Add(item);
-                            //SMSContentString = SMSContentString + ", " + item.Area;
-                            //DCount++;
                         }
                         else
                         {
@@ -1007,20 +1016,20 @@ namespace Echo
                     }
                     item.UpTime = null;
 
-                    if (/*item.Action_Type == NodeType.SMSENABLED.ToString() && */!TempDownNodesList.Contains(item))
+                    if (!TempDownNodesList.Contains(item))
                     {
                         DownNodesList.Add(item);
-                        //SMSContentString = SMSContentString + ", " + item.Area;
-                        //DCount++;
                     }
                 }
             }
             TempDownNodesList.Clear();
+
+            return ShouldSendSMS;
         }
 
-        private void BuildUpNodesList()
+        private bool BuildUpNodesList()
         {
-            //UCount = 0;
+            bool ShouldSendSMS = false;
 
             if (UPNodesList.Count > 0)
             {
@@ -1030,16 +1039,15 @@ namespace Echo
                 {
                     foreach (var item in UPNodesList)
                     {
+                        if(item.PhoneNumbersList.Count > 0 && item.Action_Type == NodeType.SMSENABLED.ToString())
+                        {
+                            ShouldSendSMS = true;
+                        }
                         if (item.UpTime == null)
                         {
                             item.UpTime = DateTime.Now;
                         }
                         item.DownTime = null;
-                        //if (item.Action_Type == NodeType.SMSENABLED.ToString())
-                        //{
-                        //    //SMSContentString = SMSContentString + ", " + item.Area;
-                        //    UCount++;
-                        //}
                     }
                 }
                 else
@@ -1048,6 +1056,8 @@ namespace Echo
                     Write_logFile(LogViewer);
                 }
             }
+
+            return ShouldSendSMS;
         }
 
 
@@ -1057,13 +1067,22 @@ namespace Echo
             int downnodescount = NodesList.Where(s => (s.Status == "Down" || s.Status == "Unknown")).ToList<Entity>().Count;
             if (downnodescount != NodesList.Count)
             {
-                //String SMSContentString_downNodes = "";
-                //String SMSContentString_UpNodes = "";
+                bool a, b, shouldSendSMS;
+                a = BuildDownNodesList();
+                b = BuildUpNodesList();
 
-                BuildDownNodesList();
-                BuildUpNodesList();
+                if (a || b)
+                {
+                    shouldSendSMS = true;
+                }
+                else
+                {
+                    shouldSendSMS = false;
+                    LogViewer = "SMS halted. May be SMS is disabled for this node. Or may be phone number is not present.";
+                    Write_logFile(LogViewer);
+                }
 
-                if(SMS_ON)
+                if(SMS_ON && shouldSendSMS)
                 {
                     IEnumerable<int> phonenumbersforSMS = new List<int>();
 

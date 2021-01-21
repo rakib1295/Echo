@@ -21,12 +21,10 @@
       <Value Profile="(Default)">5</Value>
     </Setting>
     <Setting Name="MsgHeader" Type="System.String" Scope="User">
-      <Value Profile="(Default)">Dear Sir,</Value>
+      <Value Profile="(Default)" />
     </Setting>
     <Setting Name="MsgFooter" Type="System.String" Scope="User">
-      <Value Profile="(Default)">NOC
-Moghbazar
-T-0258312345</Value>
+      <Value Profile="(Default)" />
     </Setting>
     <Setting Name="DB_UID" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
