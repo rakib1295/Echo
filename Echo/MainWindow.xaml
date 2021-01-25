@@ -498,7 +498,7 @@
         </Popup>
 
 
-        <Popup x:Name="Popup_Edit" HorizontalAlignment="Left" Placement="Mouse"  VerticalAlignment="Top" IsOpen="False" Margin="0,0,0,0" Width="340" Height="250" MouseMove="Popup_Edit_MouseMove">
+        <Popup x:Name="Popup_Edit" HorizontalAlignment="Left" Placement="Mouse"  VerticalAlignment="Top" IsOpen="False" Margin="0,0,0,0" Width="340" Height="300" MouseMove="Popup_Edit_MouseMove">
             <Grid Background="Wheat">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
@@ -522,6 +522,8 @@
                         <RowDefinition/>
                         <RowDefinition/>
                         <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="2*"/>
@@ -536,6 +538,10 @@
                     <TextBlock x:Name="_NodeStatus" Grid.Row="2" Grid.Column="2" TextAlignment="Left"/>
                     <TextBlock Text="Action:" Grid.Row="3" Grid.Column="0" TextAlignment="Right"/>
                     <TextBlock x:Name="_NodeSMSStatus" Grid.Row="3" Grid.Column="2" TextAlignment="Left"/>
+                    <TextBlock Text="Phone Numbers:" Grid.Row="4" Grid.Column="0" Grid.RowSpan="2" TextWrapping="Wrap" TextAlignment="Right"/>
+                    <ScrollViewer Grid.Row="4" Grid.Column="2" Grid.RowSpan="2" VerticalScrollBarVisibility="Auto">
+                        <TextBlock x:Name="_PhoneNumbersListTxtblk" TextWrapping="Wrap" TextAlignment="Left"/>
+                    </ScrollViewer>
                 </Grid>
 
                 <Button x:Name="Edit_btn"  Grid.Row="2" Content="Temporarily disable SMS for this link?" Click="ConfigureEditBtn_Click"  Height="25" VerticalAlignment="Bottom" Margin="10,0"/>

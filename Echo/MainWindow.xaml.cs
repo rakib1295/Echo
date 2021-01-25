@@ -114,6 +114,14 @@ namespace Echo
                 _NodeIP.Text = _itm.IPAddress;
                 _NodeStatus.Text = _itm.Status;
 
+                string _phnList = "";
+                foreach(var phn in _itm.PhoneNumbersList)
+                {
+                    _phnList = _phnList + "0" + phn.ToString() + ", ";
+                }
+                _phnList = _phnList.Substring(0, _phnList.Length - 2);
+                _PhoneNumbersListTxtblk.Text = _phnList;
+
                 if (_itm.Action_Type == NodeType.SMSENABLED.ToString())
                 {
                     _NodeSMSStatus.Text = "SMS Enabled";

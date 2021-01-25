@@ -828,6 +828,7 @@ namespace Echo
         {
             await Task.Run(() => CheckNetBeforeSMS());
             await Task.Run(() => InsertDBAsync());
+            TempDownNodesList.Clear();
         }
 
         private void CheckNetBeforeSMS()
@@ -1022,7 +1023,7 @@ namespace Echo
                     }
                 }
             }
-            TempDownNodesList.Clear();
+            //TempDownNodesList.Clear();
 
             return ShouldSendSMS;
         }
@@ -1117,13 +1118,37 @@ namespace Echo
                     NumberofFailtoSendSMS = 0;
                     SentMsgCount = 0;
 
-                    LogViewer = "Sending SMS, please wait ... .. .";
-                    Write_logFile(LogViewer);
-
-                    foreach (var phn in PhoneNumbersList)
+                    if (NumberofDestination == 0)
                     {
+                        LogViewer = "All nodes are up. No SMS will fire now.";
+                        Write_logFile(LogViewer);
+                        MessageBox.Show(LogViewer, Title, MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    else
+                    {
+                        LogViewer = "Sending SMS, please wait ... .. .";
+                        Write_logFile(LogViewer);
 
-                        SMSTrigger(phn);
+                        foreach (var phn in PhoneNumbersList)
+                        {
+                            bool shouldsend = false;
+                            if (phn.UpEntities.Count > 0)
+                            {
+                                shouldsend = true;
+                            }
+                            else if (TempDownNodesList.Count > 0)
+                            {
+                                if (phn.DownEntities.Intersect(TempDownNodesList).Count() > 0)
+                                    shouldsend = true;
+                            }
+                            else if (TempDownNodesList.Count == 0)
+                            {
+                                shouldsend = true;
+                            }
+
+                            if (shouldsend)
+                                SMSTrigger(phn);
+                        }
                     }
                 }
                 else
@@ -1230,7 +1255,7 @@ namespace Echo
 
             if (SMSContentString != "")
             {
-                Write_logFile("Phone: " + phone.Phone.ToString() + ", SMS :" + 
+                Write_logFile("Phone: " + phone.Phone.ToString() + ", SMS: " + 
                     SMSContentString.Substring(0, SMSContentString.Length - 1).Replace("\n" , " "));
 
                 SMSContentString = Message_Header + "\n" + SMSContentString + Message_Footer;
@@ -1339,7 +1364,7 @@ namespace Echo
             }
         }
 
-        private void HttpCalltoTeletalk(int PhnNum, String SMSContentString)
+        private async void HttpCalltoTeletalk(int PhnNum, String SMSContentString)
         {
             string responseFromHttpWeb = "";
 
@@ -1354,7 +1379,7 @@ namespace Echo
                 request.AllowWriteStreamBuffering = false;
 
                 
-                WebResponse response = request.GetResponse();
+                WebResponse response = await request.GetResponseAsync();
                 // Display the Status.
                 //Console.WriteLine(((HttpWebResponse)response).StatusDescription);
                 // Get the stream containing content returned by the server.
