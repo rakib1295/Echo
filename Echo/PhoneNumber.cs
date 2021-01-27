@@ -13,7 +13,7 @@ namespace Echo
             DownEntities = new List<Entity>();
             UpEntities = new List<Entity>();
         }
-        public int Phone
+        public uint Phone
         { get; set; }
         public List<Entity> DownEntities { get; set; } = new List<Entity>();
         public List<Entity> UpEntities { get; set; } = new List<Entity>();

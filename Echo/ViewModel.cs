@@ -1085,7 +1085,7 @@ namespace Echo
 
                 if(SMS_ON && shouldSendSMS)
                 {
-                    IEnumerable<int> phonenumbersforSMS = new List<int>();
+                    IEnumerable<uint> phonenumbersforSMS = new List<uint>();
 
                     foreach (var item in DownNodesList)
                     {
@@ -1364,7 +1364,7 @@ namespace Echo
             }
         }
 
-        private async void HttpCalltoTeletalk(int PhnNum, String SMSContentString)
+        private async void HttpCalltoTeletalk(uint PhnNum, String SMSContentString)
         {
             string responseFromHttpWeb = "";
 
@@ -1709,8 +1709,8 @@ namespace Echo
             xlWorkBook = xlApp.Workbooks.Open(Destination_Excel_url, 0, true, 5, "", "", true, Microsoft.Office.Interop.Excel.XlPlatform.xlWindows, "\t", false, false, 0, true, 1, 0);
             xlWorkSheet1 = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item(1);
 
-            Excel.Worksheet xlWorkSheet2;
-            xlWorkSheet2 = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item(2);
+            Excel.Worksheet xlWorkSheet2 = null;
+
 
             try
             {
@@ -1720,7 +1720,6 @@ namespace Echo
 
 
                 int lastUsedRow = last.Row;
-                int lastUsedColumn = last.Column;
 
                 int rowcount = 0;
                 foreach (Excel.Range row in xlWorkSheet1.Rows)
@@ -1763,8 +1762,8 @@ namespace Echo
 
                             else if (cell.Value2 != null)
                             {
-                                _nd.PhoneNumbersList.Add(Convert.ToInt32(cell.Value2.ToString()));
-                            }                            
+                                _nd.PhoneNumbersList.Add(Convert.ToUInt32(cell.Value2.ToString()));
+                            }
                             else
                                 break;
                         }
@@ -1773,26 +1772,53 @@ namespace Echo
                         _nd.PropertyChanged -= Node_PropertyChanged;
                         _nd.PropertyChanged += Node_PropertyChanged;
 
+                        _nd.PhoneNumbersList = _nd.PhoneNumbersList.Distinct().ToList();
                         NodesList.Add(_nd);
                     }
                 }
 
-                //for (int i = 2; i <= lastUsedRow; i++)
-                //{
 
-                //}
+                if (xlWorkBook.Sheets.Count > 1)
+                {
+                    xlWorkSheet2 = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item(2);
 
-                //last = xlWorkSheet2.Cells.SpecialCells(Excel.XlCellType.xlCellTypeLastCell, Type.Missing);
+                    if (xlWorkSheet2.Cells[2, 1].Value2 != null)
+                    {
+                        int tryint = 0;
+                        bool tryintsuccess = false;
+                        try
+                        {
+                            tryint = Convert.ToInt32(xlWorkSheet2.Cells[2, 1].Value2.ToString());
+                            tryintsuccess = true;
+                        }
+                        catch (Exception ex)
+                        {
+                            this.LogViewer = "Non-numerical data in second sheet. Tried to convert non-numerical data to integer. So it has skipped.";
+                            Write_logFile(LogViewer);
+                        }
+                        if (tryintsuccess)
+                        {
+                            last = xlWorkSheet2.Cells.SpecialCells(Excel.XlCellType.xlCellTypeLastCell, Type.Missing);
 
-                //lastUsedRow = last.Row;
-                //lastUsedColumn = last.Column;
+                            lastUsedRow = last.Row;
 
-                //PhoneNumberList.Clear();
-                //for (int i = 2; i <= lastUsedRow; i++)
-                //{
-                //    string str = xlWorkSheet2.Cells[i, 1].Value2.ToString();
-                //    PhoneNumberList.Add(Convert.ToInt32(str));
-                //}
+                            uint num;
+
+                            foreach (var node in NodesList)
+                            {
+                                for (int i = 2; i <= lastUsedRow; i++)
+                                {
+                                    string str = xlWorkSheet2.Cells[i, 1].Value2.ToString();
+                                    num = Convert.ToUInt32(str);
+                                    node.PhoneNumbersList.Add(num);
+                                }
+                                node.PhoneNumbersList = node.PhoneNumbersList.Distinct().ToList();
+                            }
+
+                        }
+                    }
+                }
+
 
                 load_or_not = true;
             }
@@ -1809,7 +1835,8 @@ namespace Echo
                 xlWorkBook.Close(false, misValue, misValue);
                 xlApp.Quit();
                 releaseObject(xlWorkSheet1);
-                releaseObject(xlWorkSheet2);
+                if(xlWorkSheet2 != null)
+                    releaseObject(xlWorkSheet2);
                 releaseObject(xlWorkBook);
                 releaseObject(xlApp);
             }

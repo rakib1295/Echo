@@ -14,7 +14,7 @@ namespace Echo
     {
         public Entity()
         {
-            PhoneNumbersList = new List<int>();
+            PhoneNumbersList = new List<uint>();
         }
         public int SuccessPingCount
         { get; set; }
@@ -115,7 +115,7 @@ namespace Echo
             }
         }
 
-        public List<int> PhoneNumbersList 
+        public List<uint> PhoneNumbersList 
         { get; set; }
 
 
