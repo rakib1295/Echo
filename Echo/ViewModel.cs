@@ -377,7 +377,7 @@ namespace Echo
             }
 
             AppLoadingFlag = false;
-
+            bool inserted = true;
             AppLoadingTimer.Stop();
             List<Entity> downlist = NodesList.Where(s => (s.Status == "Down")).ToList<Entity>();
 
@@ -395,10 +395,19 @@ namespace Echo
             }
             if (DownNodesList.Count > 0)
             {
-                await InsertDBAsync();
+                inserted = await InsertDBAsync();
             }
-            LogViewer = "Completed MySQL Database sync in application side. System is stable now.";
-            Write_logFile(LogViewer);            
+            if (inserted)
+            {
+                LogViewer = "Completed MySQL Database sync in application side. System is stable now.";
+                Write_logFile(LogViewer);
+            }
+            else
+            {
+                LogViewer = "Syncing is interrupted. Something is wrong in DB. Check database.";
+                Write_logFile(LogViewer);
+                RunPingFunctionality = false;
+            }
         }
 
         private static System.Timers.Timer PingSenseTimer = new System.Timers.Timer();
@@ -503,8 +512,9 @@ namespace Echo
             return count;
         }
 
-        private async Task InsertDBAsync()
+        private async Task<bool> InsertDBAsync()
         {
+            bool ret = true;
             int inserted_downtable = 0, inserted_uptable = 0;
 
             foreach (var item in UPNodesList)
@@ -541,6 +551,10 @@ namespace Echo
                 }
                 UPNodesList.Clear();
             }
+            else
+            {
+                ret = false;
+            }
 
             foreach (var item in DownNodesList)
             {
@@ -576,6 +590,11 @@ namespace Echo
                 }
                 DownNodesList.Clear();
             }
+            else
+            {
+                ret = false;
+            }
+            return ret;
         }
 
 
@@ -637,6 +656,7 @@ namespace Echo
         {
             LogViewer = "Syncing MySQL Database......";
             Write_logFile(LogViewer);
+            bool inserted = true;
             RunningDBSync = true;
             int status = 0;
             List<string> down_ip_list_fromDB = new List<string>();
@@ -655,7 +675,7 @@ namespace Echo
                     int i = 0;
                     while(status != -1)
                     {
-                        status = await TryToPingNodesAync(item);
+                        status = await TryToPingNodesAsync(item);
                         if (status == 1) break;
                         i++;
                         if (i == 4) break;
@@ -685,11 +705,20 @@ namespace Echo
             {
                 if (UPNodesList.Count > 0)
                 {
-                    await InsertDBAsync();
+                    inserted = await InsertDBAsync();
                 }
-                RunningDBSync = false;
-                LogViewer = "Completed MySQL Database sync in DB side.";
-                Write_logFile(LogViewer);
+                if (inserted)
+                {
+                    RunningDBSync = false;
+                    LogViewer = "Completed MySQL Database sync in DB side.";
+                    Write_logFile(LogViewer);
+                }
+                else
+                {
+                    LogViewer = "Syncing is interrupted. Something is wrong in DB. Check database.";
+                    Write_logFile(LogViewer);
+                    RunPingFunctionality = false;
+                }
             }
             else
             {
@@ -826,8 +855,15 @@ namespace Echo
 
         private async Task SMSThreadMethodAsync()
         {
+            bool inserted = true;
             await Task.Run(() => CheckNetBeforeSMS());
-            await Task.Run(() => InsertDBAsync());
+            inserted = await Task.Run(() => InsertDBAsync());
+            if(!inserted)    
+            {
+                LogViewer = "Insertion into DB is interrupted. Something is wrong in DB. Check database.";
+                Write_logFile(LogViewer);
+                RunPingFunctionality = false;
+            }
             TempDownNodesList.Clear();
         }
 
@@ -1863,7 +1899,7 @@ namespace Echo
             }
         }
 
-        private async Task<int> TryToPingNodesAync(string ipaddress)
+        private async Task<int> TryToPingNodesAsync(string ipaddress)
         {
             int replyStatus = -1;
             Ping pingSender = new Ping();

@@ -115,7 +115,7 @@ namespace Echo
             }
         }
 
-        public List<uint> PhoneNumbersList 
+        public List<uint> PhoneNumbersList //size greater than int
         { get; set; }
 
 
